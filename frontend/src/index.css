@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --color-background: #e4e7f3;
+  --color-primary: #1e3a8a;
+  --color-primary-dark: #0f172a;
+  --color-accent: #06b6d4;
+  --color-secondary: #000000;
+  --color-secondary-dark: #ffffff;
+  --color-text: #000000;
+  --color-text-dark: #ffffff;
+  --color-border-primary: rgba(30, 58, 138, 0.2);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --blur-glass: blur(16px);
+}
+
+.dark {
+  --color-background: #000000;
+  --color-primary: #0f172a;
+  --color-primary-dark: #1e3a8a;
+  --color-accent: #06b6d4;
+  --color-secondary: #ffffff;
+  --color-secondary-dark: #000000;
+  --color-text: #ffffff;
+  --color-text-dark: #000000;
+  --color-border-primary: rgba(6, 182, 212, 0.2);
+  --shadow-glass: 0 8px 32px 0 rgba(6, 182, 212, 0.37);
+  --shadow-soft: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+}
+
+@layer base {
+  html {
+    font-family: 'Roboto', sans-serif;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: background-color 0.3s, color 0.3s;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--blur-glass);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-glass);
+  }
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-soft);
+    transform: translateY(0);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background-color: var(--color-secondary);
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-soft);
+    transform: translateY(0);
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-secondary-dark);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+  .dark .btn-secondary {
+    color: black;
+  }
+  .dark .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+}
