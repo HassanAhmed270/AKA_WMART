@@ -108,7 +108,6 @@ const AdminOrders = () => {
     }
   };
 
-  // 🟢 WHATSAPP
 const handleWhatsApp = (order) => {
 
   const productsList = order.products
@@ -120,7 +119,7 @@ const handleWhatsApp = (order) => {
     .join("\n");
 
   const message =
-    `🛒 Order Confirmation\n\n` +
+    `🛒 *Order Confirmation*\n\n` +
     `Order ID: ${order._id}\n\n` +
     `Products:\n${productsList}\n\n` +
     `Total: ${order.currency} ${order.amount}\n\n` +
@@ -129,27 +128,36 @@ const handleWhatsApp = (order) => {
   let phone = order.phoneNumber;
 
   if (!phone) {
-    alert("Phone number not found for this order");
+    alert("Phone number missing");
     return;
   }
 
-  // clean number
+  // STEP 1: clean number
   phone = phone.toString().replace(/\D/g, "");
 
-  // convert PK format → international
+  // STEP 2: fix Pakistan format (important)
   if (phone.startsWith("0")) {
     phone = "92" + phone.slice(1);
   }
 
-  // safety check
-  if (phone.length < 10) {
-    alert("Invalid phone number format");
+  // STEP 3: force validation
+  if (phone.length < 11) {
+    alert("Invalid phone number: " + phone);
     return;
   }
 
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  // STEP 4: use WhatsApp API (more reliable than wa.me)
+  const text = encodeURIComponent(message);
 
-  window.open(url, "_blank", "noopener,noreferrer");
+  const url = `https://api.whatsapp.com/send?phone=${phone}&text=${text}`;
+
+  // STEP 5: open safely
+  const newTab = window.open(url, "_blank");
+
+  // fallback (some browsers block popup)
+  if (!newTab) {
+    window.location.href = url;
+  }
 };
 
   // 🟢 SEARCH
