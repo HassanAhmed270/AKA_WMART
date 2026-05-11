@@ -138,7 +138,10 @@ const AddProduct = () => {
               value={formData.productName}
               onChange={handleChange}
               required
-              sx={{ input: { color: "var(--color-text)" } }}
+              sx={{
+                input: { color: "black" },
+                label: { color: "black" }
+              }}
             />
 
             <TextField
@@ -149,7 +152,10 @@ const AddProduct = () => {
               value={formData.productPrice}
               onChange={handleChange}
               required
-              sx={{ input: { color: "var(--color-text)" } }}
+              sx={{
+                input: { color: "black" },
+                label: { color: "black" }
+              }}
             />
 
             <TextField
@@ -160,7 +166,10 @@ const AddProduct = () => {
               value={formData.quantity}
               onChange={handleChange}
               required
-              sx={{ input: { color: "var(--color-text)" } }}
+              sx={{
+                input: { color: "black" },
+                label: { color: "black" }
+              }}
             />
 
             <div className="flex flex-col md:flex-row gap-3">
@@ -172,7 +181,10 @@ const AddProduct = () => {
                 value={formData.brand}
                 onChange={handleChange}
                 required
-                sx={{ input: { color: "var(--color-text)" } }}
+                sx={{
+                  input: { color: "black" },
+                  label: { color: "black" }
+                }}
               />
 
               <TextField
@@ -182,7 +194,10 @@ const AddProduct = () => {
                 value={formData.category}
                 onChange={handleChange}
                 required
-                sx={{ input: { color: "var(--color-text)" } }}
+                sx={{
+                  input: { color: "black" },
+                  label: { color: "black" }
+                }}
               />
 
             </div>
@@ -195,13 +210,13 @@ const AddProduct = () => {
               onChange={handleChange}
               rows={4}
               className="
-                w-full p-3 rounded-md
-                bg-transparent
-                border border-white/10
-                text-[var(--color-text)]
-                outline-none
-                resize-none
-              "
+      w-full p-3 rounded-md
+      bg-transparent
+      border border-white/10
+      text-black
+      outline-none
+      resize-none
+    "
             />
 
             {/* Image Upload */}
@@ -215,12 +230,12 @@ const AddProduct = () => {
               type="submit"
               disabled={loading}
               className="
-                w-full py-2.5 rounded-md
-                bg-[var(--color-primary)]
-                text-white font-semibold
-                flex justify-center items-center gap-2
-                hover:opacity-90 transition
-              "
+      w-full py-2.5 rounded-md
+      bg-[var(--color-primary)]
+      text-white font-semibold
+      flex justify-center items-center gap-2
+      hover:opacity-90 transition
+    "
             >
               {loading ? (
                 <LuLoaderCircle className="animate-spin" />
