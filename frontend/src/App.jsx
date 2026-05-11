@@ -29,10 +29,8 @@ import { CartContext } from "./CartContext";
 import { useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch,useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 function App() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const cart = useSelector(state => state.products.cart);
 
   useEffect(() => {
@@ -41,7 +39,7 @@ function App() {
       localStorage.removeItem("user");
       localStorage.removeItem("persist:root");
       dispatch(setUser(null));
-      navigate("/login");
+      window.location.href = "/login";
     };
 
     const responseInterceptor = axios.interceptors.response.use(
@@ -90,7 +88,7 @@ function App() {
     return () => {
       axios.interceptors.response.eject(responseInterceptor);
     };
-  }, [dispatch, navigate]);
+  }, [dispatch]);
   const router = createBrowserRouter([
     {
       path: '/',
