@@ -34,24 +34,6 @@ function App() {
   const cart = useSelector(state => state.products.cart);
 
   useEffect(() => {
-    const clearAuth = () => {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("persist:root");
-      dispatch(setUser(null));
-      window.location.href = "/login";
-    };
-
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          clearAuth();
-        }
-        return Promise.reject(error);
-      }
-    );
-
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("accessToken");
@@ -84,10 +66,6 @@ function App() {
     };
 
     fetchData();
-
-    return () => {
-      axios.interceptors.response.eject(responseInterceptor);
-    };
   }, [dispatch]);
   const router = createBrowserRouter([
     {
