@@ -109,33 +109,38 @@ const AdminOrders = () => {
   };
 
   // 🟢 WHATSAPP
-  const handleWhatsApp = (order) => {
+ const handleWhatsApp = (order) => {
 
-    const productsList = order.products
-      .map(p => {
-        const name = p.productId?.productName || "Product";
-        const qty = p.quantity || 1;
-        return `- ${name} × ${qty}`;
-      })
-      .join("\n");
+  const productsList = order.products
+    .map((p) => {
+      const name = p.productId?.productName || "Product";
+      const qty = p.quantity || 1;
+      return `• ${name} x ${qty}`;
+    })
+    .join("\n");
 
-    const total = order.amount;
+  const message =
+    `🛒 Order Confirmation\n\n` +
+    `Order ID: ${order._id}\n\n` +
+    `Products:\n${productsList}\n\n` +
+    `Total: ${order.currency} ${order.amount}\n\n` +
+    `Please confirm your order.`;
 
-    const message =
-      `🛒 Order Details\n\n` +
-      `Order ID: ${order._id}\n\n` +
-      `Products:\n${productsList}\n\n` +
-      `Total: Rs ${total}\n\n` +
-      `Please confirm this order.`;
+  let phone = order.phoneNumber || "";
 
-    const phone = order.phoneNumber?.replace(/\D/g, "");
+  // Remove spaces/dashes/brackets/+
+  phone = phone.replace(/\D/g, "");
 
-    const url = order.status === "Pending"
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/${phone}`;
+  // Convert Pakistani local format to international
+  // 03XXXXXXXXX -> 923XXXXXXXXX
+  if (phone.startsWith("0")) {
+    phone = "92" + phone.substring(1);
+  }
 
-    window.open(url, "_blank");
-  };
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+  window.open(url, "_blank");
+};
 
   // 🟢 SEARCH
   const filtered = orders.filter(order => {
