@@ -32,7 +32,7 @@ const AdminProduct = () => {
   const [filter, setFilter] = useState("");
 
   const [displayOrder, setDisplayOrder] = useState("lowToHigh");
-  const [priceRange] = useState([0, 999999]);
+  const [priceRange] = useState([0, 10000]);
 
   const [filteredList, setFilteredList] = useState([]);
 

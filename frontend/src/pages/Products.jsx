@@ -24,7 +24,7 @@ const Products = () => {
     const [category, setCategory] = useState("All");
     const [brand, setBrand] = useState("All");
     const [loading, setLoading] = useState(true);
-    const [priceRange, setPriceRange] = useState([0, 999999]);
+    const [priceRange, setPriceRange] = useState([0, 10000]);
     const [displayOrder] = useState('lowToHigh');
 
     // MOBILE FILTER DRAWER

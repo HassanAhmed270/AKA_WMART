@@ -20,12 +20,12 @@ const FilterSideBar = ({
 
     // ✅ safe values (fix undefined issue)
     const min = priceRange?.[0] ?? 0;
-    const max = priceRange?.[1] ?? 999999;
+    const max = priceRange?.[1] ?? 10000;
 
     const handleCategoryClick = (val) => {
     setSearch("");
     setBrand("All");
-    setPriceRange([0, 999999]);
+    setPriceRange([0, 10000]);
     setCategory(val);
 };
 
@@ -52,7 +52,7 @@ const FilterSideBar = ({
         setSearch("");
         setCategory("All");
         setBrand("All");
-        setPriceRange([0, 999999]);
+        setPriceRange([0, 10000]);
     };
 
     return (
@@ -118,7 +118,7 @@ const FilterSideBar = ({
                     <input
                         type="number"
                         min="0"
-                        max="999999"
+                        max="10000"
                         value={max}
                         onChange={handleMaxChange}   // ✅ FIXED
                         className='w-20 p-1 border border-primary/20 rounded focus:outline-none focus:ring-2 focus:ring-primary'
@@ -138,7 +138,7 @@ const FilterSideBar = ({
                 <input
                     type="range"
                     min="0"
-                    max="999999"
+                    max="10000"
                     value={max}
                     onChange={handleMaxChange}   // ✅ FIXED
                     className='w-full p-1 border border-primary/20 rounded accent-primary'
