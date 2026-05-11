@@ -1,7 +1,10 @@
 import React from 'react'
 import { Button } from '@mui/material'
+import { useNavigate } from "react-router-dom"
 
 const Hero = () => {
+
+    const navigate = useNavigate();
 
     return (
         <section
@@ -23,17 +26,13 @@ const Hero = () => {
                     {/* LEFT CONTENT */}
                     <div>
 
-                        <h1
-                            className='text-4xl md:text-6xl font-bold mb-4 text-white'
-                        >
+                        <h1 className='text-4xl md:text-6xl font-bold mb-4 text-white'>
                             Premium Watches for Every Style
                         </h1>
 
                         <p
                             className='text-xl mb-6'
-                            style={{
-                                color: "rgba(255,255,255,0.75)"
-                            }}
+                            style={{ color: "rgba(255,255,255,0.75)" }}
                         >
                             Buy and sell quality watches with trusted deals and modern collections.
                         </p>
@@ -43,7 +42,7 @@ const Hero = () => {
                             {/* GOLD PRIMARY BUTTON */}
                             <Button
                                 variant="contained"
-                                href="/products"
+                                onClick={() => navigate("/products")}
                                 sx={{
                                     py: 1,
                                     px: 3,
@@ -64,7 +63,7 @@ const Hero = () => {
                             {/* GOLD OUTLINE BUTTON */}
                             <Button
                                 variant="outlined"
-                                href="/deals"
+                                onClick={() => navigate("/deals")}
                                 sx={{
                                     py: 1,
                                     px: 3,
