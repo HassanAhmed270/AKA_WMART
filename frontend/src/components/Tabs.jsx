@@ -20,67 +20,45 @@ const Tabs = ({
   // 🔥 NEW: lock per order (prevents multiple clicks)
   const [loadingInquiryId, setLoadingInquiryId] = useState(null);
 
-  const inquireOrder = async (order) => {
-    try {
+const inquireOrder = async (order) => {
+  try {
+    const orderId = order._id;
+    const accessToken = localStorage.getItem("accessToken");
 
-      const orderId = order._id;
-      const accessToken = localStorage.getItem("accessToken");
+    if (loadingInquiryId === orderId) return;
+    setLoadingInquiryId(orderId);
 
-      // prevent double click per order
-      if (loadingInquiryId === orderId) return;
-      setLoadingInquiryId(orderId);
-
-      // company number (Pakistan format fixed)
-      let phone = "03351234567";
-
-      // convert to WhatsApp format
-      phone = phone.replace(/\D/g, "");
-      if (phone.startsWith("0")) {
-        phone = "92" + phone.slice(1);
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/orders/inquire`,
+      { orderId },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
       }
+    );
 
-      const userName =
-        `${order.user?.firstName || ""} ${order.user?.lastName || ""}`.trim();
+    if (res.data.success && res.data.url) {
+      const url = res.data.url;
 
-      const message =
-        `🛒 Order Inquiry\n\n` +
-        `Name: ${userName}\n` +
-        `Order ID: ${orderId}\n\n` +
-        `Hello, I want to know the status/update of my order. Please assist me.`;
-
-      const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
-
-      // open whatsapp
       const newTab = window.open(url, "_blank");
 
       if (!newTab) {
         window.location.href = url;
       }
 
-      // optional backend call (kept same idea)
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/orders/inquire`,
-        { orderId },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        }
-      );
-
-      if (res.data.success) {
-        alert("Inquiry sent successfully. WhatsApp opened.");
-      } else {
-        alert("Inquiry recorded but failed response.");
-      }
-
-    } catch (error) {
-      console.log("Inquiry error:", error);
-      alert("Failed to send inquiry");
-    } finally {
-      setLoadingInquiryId(null);
+      alert("WhatsApp opened successfully.");
+    } else {
+      alert("Failed to generate inquiry link");
     }
-  };
+
+  } catch (error) {
+    console.log("Inquiry error:", error);
+    alert("Failed to send inquiry");
+  } finally {
+    setLoadingInquiryId(null);
+  }
+};
 
   return (
     <div className="flex flex-col items-center mt-6 md:mt-10 px-3 md:px-0 w-full">
