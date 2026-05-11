@@ -33,7 +33,7 @@ const VerifyEmail = () => {
 
     } catch (error) {
       setStatus(
-        error.response?.data?.message || "Verification Failed ❌"
+        error?.response?.data?.message || error.message || "Verification Failed ❌"
       );
       setSuccess(false);
     } finally {
@@ -42,6 +42,8 @@ const VerifyEmail = () => {
   };
 
   useEffect(() => {
+    if (!token) return;   // 🔥 MUST ADD THIS
+
     verifyEmail();
   }, [token]);
 
