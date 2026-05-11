@@ -16,40 +16,72 @@ const Tabs = ({
 
   const [activeTab, setActiveTab] = useState("profile");
   const navigate = useNavigate();
-const inquireOrder = async (orderId) => {
-  try {
-    const accessToken = localStorage.getItem("accessToken");
 
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/orders/inquire`,
-      { orderId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+  // 🔥 NEW: lock per order (prevents multiple clicks)
+  const [loadingInquiryId, setLoadingInquiryId] = useState(null);
+
+  const inquireOrder = async (order) => {
+    try {
+
+      const orderId = order._id;
+      const accessToken = localStorage.getItem("accessToken");
+
+      // prevent double click per order
+      if (loadingInquiryId === orderId) return;
+      setLoadingInquiryId(orderId);
+
+      // company number (Pakistan format fixed)
+      let phone = "03351234567";
+
+      // convert to WhatsApp format
+      phone = phone.replace(/\D/g, "");
+      if (phone.startsWith("0")) {
+        phone = "92" + phone.slice(1);
       }
-    );
 
-    console.log("INQUIRY RESPONSE:", res.data);
+      const userName =
+        `${order.user?.firstName || ""} ${order.user?.lastName || ""}`.trim();
 
-    if (res.data.success && res.data.url) {
+      const message =
+        `🛒 Order Inquiry\n\n` +
+        `Name: ${userName}\n` +
+        `Order ID: ${orderId}\n\n` +
+        `Hello, I want to know the status/update of my order. Please assist me.`;
 
-      const newTab = window.open(res.data.url, "_blank");
+      const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 
-      // fallback if popup blocked
+      // open whatsapp
+      const newTab = window.open(url, "_blank");
+
       if (!newTab) {
-        window.location.href = res.data.url;
+        window.location.href = url;
       }
 
-    } else {
-      alert("Failed to open WhatsApp");
-    }
+      // optional backend call (kept same idea)
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/orders/inquire`,
+        { orderId },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
 
-  } catch (error) {
-    console.log("Inquiry error:", error);
-    alert("Failed to send inquiry");
-  }
-};
+      if (res.data.success) {
+        alert("Inquiry sent successfully. WhatsApp opened.");
+      } else {
+        alert("Inquiry recorded but failed response.");
+      }
+
+    } catch (error) {
+      console.log("Inquiry error:", error);
+      alert("Failed to send inquiry");
+    } finally {
+      setLoadingInquiryId(null);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center mt-6 md:mt-10 px-3 md:px-0 w-full">
 
@@ -267,17 +299,14 @@ const inquireOrder = async (orderId) => {
                         <p className="text-sm text-gray-400">{order.user?.email}</p>
                       </div>
 
-                      <span
-                        className={`
-    px-2 py-1 rounded text-white text-sm w-fit inline-flex items-center justify-center
-    ${order.status === "Paid"
-                            ? "bg-green-500"
-                            : order.status === "Failed"
-                              ? "bg-red-500"
-                              : "bg-orange-400"
-                          }
-  `}
-                      >
+                      <span className={`
+                        px-2 py-1 rounded text-white text-sm w-fit
+                        ${order.status === "Paid"
+                          ? "bg-green-500"
+                          : order.status === "Failed"
+                            ? "bg-red-500"
+                            : "bg-orange-400"}
+                      `}>
                         {order.status}
                       </span>
 
@@ -319,7 +348,8 @@ const inquireOrder = async (orderId) => {
 
                     {/* INQUIRE BUTTON */}
                     <button
-                      onClick={() => {inquireOrder(order._id)}}
+                      disabled={loadingInquiryId === order._id}
+                      onClick={() => inquireOrder(order)}
                       className="
                         mt-4 w-full md:w-auto
                         px-4 py-2
@@ -329,9 +359,12 @@ const inquireOrder = async (orderId) => {
                         hover:bg-white/20
                         transition
                         border border-blue-500
+                        disabled:opacity-50
                       "
                     >
-                      Inquire Order
+                      {loadingInquiryId === order._id
+                        ? "Opening WhatsApp..."
+                        : "Inquire Order"}
                     </button>
 
                   </div>
