@@ -110,6 +110,8 @@ const AdminOrders = () => {
 
 const handleWhatsApp = (order) => {
 
+  const details = order.Details || {};
+
   const productsList = order.products
     ?.map((p) => {
       const name = p.productId?.productName || "Product";
@@ -118,43 +120,56 @@ const handleWhatsApp = (order) => {
     })
     .join("\n");
 
-  const message =
+  // 🟢 BASE MESSAGE
+  let message =
     `🛒 *Order Confirmation*\n\n` +
     `Order ID: ${order._id}\n\n` +
     `Products:\n${productsList}\n\n` +
-    `Total: ${order.currency} ${order.amount}\n\n` +
-    `Please confirm your order.`;
+    `Total: ${order.currency} ${order.amount}\n\n`;
 
-  let phone = order.phoneNumber;
+  // 🟡 ADD ADDRESS IF EXISTS
+  if (details.address) {
+    message +=
+      `📍 *Delivery Address Confirmation*\n` +
+      `Name: ${details.fullName || "N/A"}\n` +
+      `Address: ${details.address}\n` +
+      `City: ${details.city || ""}\n` +
+      `State: ${details.state || ""}\n` +
+      `Zip: ${details.zip || ""}\n` +
+      `Country: ${details.country || ""}\n\n` +
+      `Please confirm if this address is correct.\n\n`;
+  }
+
+  message += `Please confirm your order.`;
+
+  // 🟢 PHONE FROM DETAILS FIRST
+  let phone = details.phone || order.phoneNumber;
 
   if (!phone) {
-    alert("Phone number missing");
+    alert("Phone number missing in order Details");
     return;
   }
 
-  // STEP 1: clean number
+  // clean number
   phone = phone.toString().replace(/\D/g, "");
 
-  // STEP 2: fix Pakistan format (important)
+  // Pakistan format fix
   if (phone.startsWith("0")) {
     phone = "92" + phone.slice(1);
   }
 
-  // STEP 3: force validation
+  // validation
   if (phone.length < 11) {
     alert("Invalid phone number: " + phone);
     return;
   }
 
-  // STEP 4: use WhatsApp API (more reliable than wa.me)
   const text = encodeURIComponent(message);
 
   const url = `https://api.whatsapp.com/send?phone=${phone}&text=${text}`;
 
-  // STEP 5: open safely
-  const newTab = window.open(url, "_blank");
+  const newTab = window.open(url, "_blank", "noopener,noreferrer");
 
-  // fallback (some browsers block popup)
   if (!newTab) {
     window.location.href = url;
   }

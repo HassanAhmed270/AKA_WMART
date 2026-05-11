@@ -105,64 +105,86 @@ const AddressForm = () => {
         }
     };
 
-    const placeOrder = async () => {
-        try {
-            const token = localStorage.getItem("accessToken");
+const placeOrder = async () => {
+  try {
+    const token = localStorage.getItem("accessToken");
 
-            // DELIVERY VALIDATION ONLY
-            if (orderType === "Delivery" && !selectedAddr) {
-                setToast({
-                    open: true,
-                    message: "Please select a delivery address",
-                    severity: "error"
-                });
-                return;
-            }
+    // DELIVERY VALIDATION ONLY
+    if (orderType === "Delivery" && !selectedAddr) {
+      setToast({
+        open: true,
+        message: "Please select a delivery address",
+        severity: "error"
+      });
+      return;
+    }
 
-            const deliveryAddress =
-                orderType === "Delivery"
-                    ? `${selectedAddr.address}, ${selectedAddr.city}, ${selectedAddr.zip}`
-                    : undefined;
+    // 🟢 BUILD DETAILS OBJECT BASED ON ORDER TYPE
+    let Details = {};
 
-            const res = await axios.post(
-                `${import.meta.env.VITE_API_URL}/orders/create`,
-                {
-                    products: cart.items,
-                    amount: total,
-                    shipping,
-                    currency: "PKR",
-                    orderType,
+    if (orderType === "Pickup") {
+      Details = {
+        phone: phoneNumber
+      };
+    }
 
-                    phoneNumber: phoneNumber || selectedAddr?.phone || "",
+    if (orderType === "Delivery") {
+      Details = {
+        fullName: selectedAddr.fullName,
+        phone: selectedAddr.phone,
+        email: selectedAddr.email,
+        address: selectedAddr.address,
+        city: selectedAddr.city,
+        state: selectedAddr.state,
+        zip: selectedAddr.zip,
+        country: selectedAddr.country
+      };
+    }
 
-                    deliveryAddress
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+    const deliveryAddress =
+      orderType === "Delivery"
+        ? `${selectedAddr.address}, ${selectedAddr.city}, ${selectedAddr.zip}`
+        : undefined;
 
-            setToast({
-                open: true,
-                message: `Order Created Successfully — ${orderType}`,
-                severity: "success"
-            });
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/orders/create`,
+      {
+        products: cart.items,
+        amount: total,
+        shipping,
+        currency: "PKR",
+        orderType,
 
-            setTimeout(async () => {
-                await emptyCart();
-                navigate(`/order-success/${res.data.dbOrder._id}`);
-            }, 1500);
+        Details, // 🔥 MAIN FIX
 
-        } catch (error) {
-            setToast({
-                open: true,
-                message: "Order creation failed",
-                severity: "error"
-            });
+        deliveryAddress
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-    };
+      }
+    );
+
+    setToast({
+      open: true,
+      message: `Order Created Successfully — ${orderType}`,
+      severity: "success"
+    });
+
+    setTimeout(async () => {
+      await emptyCart();
+      navigate(`/order-success/${res.data.dbOrder._id}`);
+    }, 1500);
+
+  } catch (error) {
+    setToast({
+      open: true,
+      message: "Order creation failed",
+      severity: "error"
+    });
+  }
+};
 
     return (
         <div className="w-full px-4 py-10 bg-[var(--color-background)]">
