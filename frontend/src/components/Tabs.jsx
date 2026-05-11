@@ -16,7 +16,7 @@ const Tabs = ({
 
   const [activeTab, setActiveTab] = useState("profile");
   const navigate = useNavigate();
- const inquireOrder = async (orderId) => {
+const inquireOrder = async (orderId) => {
   try {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -30,10 +30,19 @@ const Tabs = ({
       }
     );
 
-    if (res.data.success) {
-      alert("Inquiry sent successfully. Admin will contact you soon.");
+    console.log("INQUIRY RESPONSE:", res.data);
+
+    if (res.data.success && res.data.url) {
+
+      const newTab = window.open(res.data.url, "_blank");
+
+      // fallback if popup blocked
+      if (!newTab) {
+        window.location.href = res.data.url;
+      }
+
     } else {
-      alert("Failed to send inquiry");
+      alert("Failed to open WhatsApp");
     }
 
   } catch (error) {
