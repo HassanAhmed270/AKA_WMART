@@ -28,6 +28,9 @@ const AddressForm = () => {
     const [orderType, setOrderType] = useState("Delivery");
     const [phoneNumber, setPhoneNumber] = useState("");
 
+    // 🔥 NEW: LOCK STATE (PREVENT DOUBLE ORDER)
+    const [placingOrder, setPlacingOrder] = useState(false);
+
     const [toast, setToast] = useState({
         open: false,
         message: "",
@@ -64,7 +67,7 @@ const AddressForm = () => {
         }
     }, [length, navigate]);
 
-    // ORDER TYPE CONTROL (IMPORTANT FIX)
+    // ORDER TYPE CONTROL
     useEffect(() => {
         if (orderType === "Delivery") {
             setShowForm(addresses.length === 0);
@@ -105,86 +108,93 @@ const AddressForm = () => {
         }
     };
 
-const placeOrder = async () => {
-  try {
-    const token = localStorage.getItem("accessToken");
+    // 🔥 FIXED PLACE ORDER (WITH LOCK)
+    const placeOrder = async () => {
 
-    // DELIVERY VALIDATION ONLY
-    if (orderType === "Delivery" && !selectedAddr) {
-      setToast({
-        open: true,
-        message: "Please select a delivery address",
-        severity: "error"
-      });
-      return;
-    }
+        // prevent multiple clicks
+        if (placingOrder) return;
 
-    // 🟢 BUILD DETAILS OBJECT BASED ON ORDER TYPE
-    let Details = {};
+        setPlacingOrder(true);
 
-    if (orderType === "Pickup") {
-      Details = {
-        phone: phoneNumber
-      };
-    }
+        try {
+            const token = localStorage.getItem("accessToken");
 
-    if (orderType === "Delivery") {
-      Details = {
-        fullName: selectedAddr.fullName,
-        phone: selectedAddr.phone,
-        email: selectedAddr.email,
-        address: selectedAddr.address,
-        city: selectedAddr.city,
-        state: selectedAddr.state,
-        zip: selectedAddr.zip,
-        country: selectedAddr.country
-      };
-    }
+            if (orderType === "Delivery" && !selectedAddr) {
+                setToast({
+                    open: true,
+                    message: "Please select a delivery address",
+                    severity: "error"
+                });
+                setPlacingOrder(false);
+                return;
+            }
 
-    const deliveryAddress =
-      orderType === "Delivery"
-        ? `${selectedAddr.address}, ${selectedAddr.city}, ${selectedAddr.zip}`
-        : undefined;
+            let Details = {};
 
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/orders/create`,
-      {
-        products: cart.items,
-        amount: total,
-        shipping,
-        currency: "PKR",
-        orderType,
+            if (orderType === "Pickup") {
+                Details = {
+                    phone: phoneNumber
+                };
+            }
 
-        Details, // 🔥 MAIN FIX
+            if (orderType === "Delivery") {
+                Details = {
+                    fullName: selectedAddr.fullName,
+                    phone: selectedAddr.phone,
+                    email: selectedAddr.email,
+                    address: selectedAddr.address,
+                    city: selectedAddr.city,
+                    state: selectedAddr.state,
+                    zip: selectedAddr.zip,
+                    country: selectedAddr.country
+                };
+            }
 
-        deliveryAddress
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+            const deliveryAddress =
+                orderType === "Delivery"
+                    ? `${selectedAddr.address}, ${selectedAddr.city}, ${selectedAddr.zip}`
+                    : undefined;
+
+            const res = await axios.post(
+                `${import.meta.env.VITE_API_URL}/orders/create`,
+                {
+                    products: cart.items,
+                    amount: total,
+                    shipping,
+                    currency: "PKR",
+                    orderType,
+                    Details,
+                    deliveryAddress
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            setToast({
+                open: true,
+                message: `Order Created Successfully — ${orderType}`,
+                severity: "success"
+            });
+
+            setTimeout(async () => {
+                await emptyCart();
+                navigate(`/order-success/${res.data.dbOrder._id}`);
+            }, 1500);
+
+        } catch (error) {
+            setToast({
+                open: true,
+                message: "Order creation failed",
+                severity: "error"
+            });
+
+        } finally {
+            setPlacingOrder(false);
         }
-      }
-    );
-
-    setToast({
-      open: true,
-      message: `Order Created Successfully — ${orderType}`,
-      severity: "success"
-    });
-
-    setTimeout(async () => {
-      await emptyCart();
-      navigate(`/order-success/${res.data.dbOrder._id}`);
-    }, 1500);
-
-  } catch (error) {
-    setToast({
-      open: true,
-      message: "Order creation failed",
-      severity: "error"
-    });
-  }
-};
+    };
 
     return (
         <div className="w-full px-4 py-10 bg-[var(--color-background)]">
@@ -244,7 +254,7 @@ const placeOrder = async () => {
                         />
                     </div>
 
-                    {/* ADDRESS FORM ONLY FOR DELIVERY */}
+                    {/* ADDRESS FORM */}
                     {orderType === "Delivery" && (
                         showForm ? (
                             <div className="p-5 rounded-xl bg-white/5 border border-gray-900/10 space-y-3">
@@ -308,12 +318,13 @@ const placeOrder = async () => {
                         Add New Address
                     </button>
 
+                    {/* 🔥 FIXED BUTTON */}
                     <button
-                        disabled={orderType === "Delivery" && selectedAddress === null}
+                        disabled={placingOrder || (orderType === "Delivery" && selectedAddress === null)}
                         onClick={placeOrder}
                         className="w-full py-3 bg-[#d4af37] text-black font-semibold disabled:opacity-50"
                     >
-                        Confirm Order
+                        {placingOrder ? "Placing Order..." : "Confirm Order"}
                     </button>
 
                 </div>
