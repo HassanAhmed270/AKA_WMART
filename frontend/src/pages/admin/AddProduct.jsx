@@ -117,7 +117,7 @@ const AddProduct = () => {
   return (
     <Box className="min-h-screen flex items-center justify-center px-3 py-10 bg-[var(--color-background)]">
 
-      <Card className="glass-card w-full max-w-[520px]">
+      <Card className="glass-card w-full max-w-[520px] bg-zinc-300 ">
 
         <CardContent className="p-4 md:p-6">
 
