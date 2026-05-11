@@ -28,7 +28,6 @@ const AddressForm = () => {
     const [orderType, setOrderType] = useState("Delivery");
     const [phoneNumber, setPhoneNumber] = useState("");
 
-    // 🔥 NEW: LOCK STATE (PREVENT DOUBLE ORDER)
     const [placingOrder, setPlacingOrder] = useState(false);
 
     const [toast, setToast] = useState({
@@ -45,8 +44,13 @@ const AddressForm = () => {
     const { addresses = [], selectedAddress = null } =
         useSelector(store => store.products || {});
 
+    // ✅ SAFE INDEX FIX (MAIN BUG FIX)
     const selectedAddr =
-        selectedAddress !== null ? addresses[selectedAddress] : null;
+        Number.isInteger(selectedAddress) &&
+        selectedAddress >= 0 &&
+        selectedAddress < addresses.length
+            ? addresses[selectedAddress]
+            : null;
 
     const [showForm, setShowForm] = useState(false);
 
@@ -66,6 +70,13 @@ const AddressForm = () => {
             navigate(-1);
         }
     }, [length, navigate]);
+
+    // RESET INVALID ADDRESS INDEX
+    useEffect(() => {
+        if (selectedAddress >= addresses.length) {
+            dispatch(setSelectedAddress(null));
+        }
+    }, [addresses.length]);
 
     // ORDER TYPE CONTROL
     useEffect(() => {
@@ -108,12 +119,10 @@ const AddressForm = () => {
         }
     };
 
-    // 🔥 FIXED PLACE ORDER (WITH LOCK)
+    // 🔥 SAFE ORDER PLACE
     const placeOrder = async () => {
 
-        // prevent multiple clicks
         if (placingOrder) return;
-
         setPlacingOrder(true);
 
         try {
@@ -122,7 +131,7 @@ const AddressForm = () => {
             if (orderType === "Delivery" && !selectedAddr) {
                 setToast({
                     open: true,
-                    message: "Please select a delivery address",
+                    message: "Please select a valid address",
                     severity: "error"
                 });
                 setPlacingOrder(false);
@@ -132,28 +141,44 @@ const AddressForm = () => {
             let Details = {};
 
             if (orderType === "Pickup") {
+                if (!phoneNumber) {
+                    setToast({
+                        open: true,
+                        message: "Phone number required",
+                        severity: "error"
+                    });
+                    setPlacingOrder(false);
+                    return;
+                }
+
                 Details = {
                     phone: phoneNumber
                 };
             }
 
             if (orderType === "Delivery") {
+
+                if (!selectedAddr) {
+                    setToast({
+                        open: true,
+                        message: "Invalid address selected",
+                        severity: "error"
+                    });
+                    setPlacingOrder(false);
+                    return;
+                }
+
                 Details = {
-                    fullName: selectedAddr.fullName,
-                    phone: selectedAddr.phone,
-                    email: selectedAddr.email,
-                    address: selectedAddr.address,
-                    city: selectedAddr.city,
-                    state: selectedAddr.state,
-                    zip: selectedAddr.zip,
-                    country: selectedAddr.country
+                    fullName: selectedAddr.fullName || "",
+                    phone: selectedAddr.phone || "",
+                    email: selectedAddr.email || "",
+                    address: selectedAddr.address || "",
+                    city: selectedAddr.city || "",
+                    state: selectedAddr.state || "",
+                    zip: selectedAddr.zip || "",
+                    country: selectedAddr.country || ""
                 };
             }
-
-            const deliveryAddress =
-                orderType === "Delivery"
-                    ? `${selectedAddr.address}, ${selectedAddr.city}, ${selectedAddr.zip}`
-                    : undefined;
 
             const res = await axios.post(
                 `${import.meta.env.VITE_API_URL}/orders/create`,
@@ -163,8 +188,7 @@ const AddressForm = () => {
                     shipping,
                     currency: "PKR",
                     orderType,
-                    Details,
-                    deliveryAddress
+                    Details
                 },
                 {
                     headers: {
@@ -175,14 +199,14 @@ const AddressForm = () => {
 
             setToast({
                 open: true,
-                message: `Order Created Successfully — ${orderType}`,
+                message: `Order Created Successfully`,
                 severity: "success"
             });
 
             setTimeout(async () => {
                 await emptyCart();
                 navigate(`/order-success/${res.data.dbOrder._id}`);
-            }, 1500);
+            }, 1200);
 
         } catch (error) {
             setToast({
@@ -190,7 +214,6 @@ const AddressForm = () => {
                 message: "Order creation failed",
                 severity: "error"
             });
-
         } finally {
             setPlacingOrder(false);
         }
@@ -199,7 +222,7 @@ const AddressForm = () => {
     return (
         <div className="w-full px-4 py-10 bg-[var(--color-background)]">
 
-            {/* BACK BUTTON */}
+            {/* BACK */}
             <div className="max-w-7xl mx-auto mb-6">
                 <button
                     onClick={() => navigate(-1)}
@@ -215,10 +238,9 @@ const AddressForm = () => {
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-                {/* LEFT SIDE */}
+                {/* LEFT */}
                 <div className="space-y-5">
 
-                    {/* ORDER TYPE */}
                     <div className="p-5 rounded-xl bg-white/5 border border-gray-900/10 space-y-3">
 
                         <div className='font-semibold'>Select Order Type</div>
@@ -254,7 +276,6 @@ const AddressForm = () => {
                         />
                     </div>
 
-                    {/* ADDRESS FORM */}
                     {orderType === "Delivery" && (
                         showForm ? (
                             <div className="p-5 rounded-xl bg-white/5 border border-gray-900/10 space-y-3">
@@ -281,33 +302,31 @@ const AddressForm = () => {
 
                             </div>
                         ) : (
-                            <>
-                                {addresses.map((addr, index) => (
-                                    <div
-                                        key={index}
-                                        onClick={() => dispatch(setSelectedAddress(index))}
-                                        className={`p-4 rounded-lg border cursor-pointer bg-white/5 ${
-                                            selectedAddress === index
-                                                ? "border-[#d4af37]"
-                                                : "border-gray-900/10"
-                                        }`}
-                                    >
-                                        <p>{addr.fullName}</p>
-                                        <p>{addr.phone}</p>
-                                        <p>{addr.address}</p>
+                            addresses.map((addr, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => dispatch(setSelectedAddress(index))}
+                                    className={`p-4 rounded-lg border cursor-pointer bg-white/5 ${
+                                        selectedAddress === index
+                                            ? "border-[#d4af37]"
+                                            : "border-gray-900/10"
+                                    }`}
+                                >
+                                    <p>{addr.fullName}</p>
+                                    <p>{addr.phone}</p>
+                                    <p>{addr.address}</p>
 
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                dispatch(deleteAddress(index));
-                                            }}
-                                            className="text-red-400 text-sm"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                ))}
-                            </>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            dispatch(deleteAddress(index));
+                                        }}
+                                        className="text-red-400 text-sm"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))
                         )
                     )}
 
@@ -318,9 +337,8 @@ const AddressForm = () => {
                         Add New Address
                     </button>
 
-                    {/* 🔥 FIXED BUTTON */}
                     <button
-                        disabled={placingOrder || (orderType === "Delivery" && selectedAddress === null)}
+                        disabled={placingOrder}
                         onClick={placeOrder}
                         className="w-full py-3 bg-[#d4af37] text-black font-semibold disabled:opacity-50"
                     >
@@ -329,7 +347,7 @@ const AddressForm = () => {
 
                 </div>
 
-                {/* RIGHT SIDE */}
+                {/* RIGHT */}
                 <div className="p-5 rounded-xl bg-white/5 border border-gray-900/10">
                     <h2 className="font-semibold mb-3">Order Summary</h2>
 
