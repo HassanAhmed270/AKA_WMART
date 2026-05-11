@@ -109,10 +109,10 @@ const AdminOrders = () => {
   };
 
   // 🟢 WHATSAPP
- const handleWhatsApp = (order) => {
+const handleWhatsApp = (order) => {
 
   const productsList = order.products
-    .map((p) => {
+    ?.map((p) => {
       const name = p.productId?.productName || "Product";
       const qty = p.quantity || 1;
       return `• ${name} x ${qty}`;
@@ -126,20 +126,30 @@ const AdminOrders = () => {
     `Total: ${order.currency} ${order.amount}\n\n` +
     `Please confirm your order.`;
 
-  let phone = order.phoneNumber || "";
+  let phone = order.phoneNumber;
 
-  // Remove spaces/dashes/brackets/+
-  phone = phone.replace(/\D/g, "");
+  if (!phone) {
+    alert("Phone number not found for this order");
+    return;
+  }
 
-  // Convert Pakistani local format to international
-  // 03XXXXXXXXX -> 923XXXXXXXXX
+  // clean number
+  phone = phone.toString().replace(/\D/g, "");
+
+  // convert PK format → international
   if (phone.startsWith("0")) {
-    phone = "92" + phone.substring(1);
+    phone = "92" + phone.slice(1);
+  }
+
+  // safety check
+  if (phone.length < 10) {
+    alert("Invalid phone number format");
+    return;
   }
 
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-  window.open(url, "_blank");
+  window.open(url, "_blank", "noopener,noreferrer");
 };
 
   // 🟢 SEARCH

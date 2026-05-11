@@ -308,10 +308,7 @@ const Tabs = ({
 
                     </div>
 
-                    {/* INQUIRE BUTTON (placeholder) */}
-                    {/* This button is for future feature:
-                        it will allow users to inquire about order status
-                        by sending Order ID to company WhatsApp */}
+                    {/* INQUIRE BUTTON */}
                     <button
                       onClick={() => {inquireOrder(order._id)}}
                       className="
