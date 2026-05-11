@@ -55,12 +55,19 @@ const Navbar = () => {
         toast.success(res.data.message);
         dispatch(setUser(null));
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
 
         setTimeout(() => setLoading(false), 1500);
       }
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Logout failed");
+      if (error.response?.status === 401) {
+        dispatch(setUser(null));
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        window.location.href = "/login";
+      }
     }
   };
 
@@ -113,18 +120,34 @@ const Navbar = () => {
 
           {/* Auth */}
           {user ? (
-            <Button
-              onClick={handleLogout}
-              variant="contained"
-              sx={{
-                py: 1,
-                px: 2,
-                backgroundColor: "#1e3a8a",
-                "&:hover": { backgroundColor: "#0f172a" }
-              }}
-            >
-              {loading ? <LuLoaderCircle className="animate-spin" /> : "Logout"}
-            </Button>
+            <div className='flex gap-3 items-center'>
+              <Link to="/login">
+                <Button
+                  variant="outlined"
+                  sx={{
+                    py: 1,
+                    px: 2,
+                    color: "#1e3a8a",
+                    borderColor: "#1e3a8a",
+                    "&:hover": { backgroundColor: "#0f172a", color: "#fff", borderColor: "#0f172a" }
+                  }}
+                >
+                  Login
+                </Button>
+              </Link>
+              <Button
+                onClick={handleLogout}
+                variant="contained"
+                sx={{
+                  py: 1,
+                  px: 2,
+                  backgroundColor: "#1e3a8a",
+                  "&:hover": { backgroundColor: "#0f172a" }
+                }}
+              >
+                {loading ? <LuLoaderCircle className="animate-spin" /> : "Logout"}
+              </Button>
+            </div>
           ) : (
             <Link to="/login">
               <Button
@@ -192,9 +215,14 @@ const Navbar = () => {
 
           {/* Auth */}
           {user ? (
-            <button onClick={handleLogout} className='text-left text-red-500'>
-              Logout
-            </button>
+            <>
+              <Link onClick={() => setMenuOpen(false)} to="/login">
+                Login
+              </Link>
+              <button onClick={handleLogout} className='text-left text-red-500'>
+                Logout
+              </button>
+            </>
           ) : (
             <Link onClick={() => setMenuOpen(false)} to="/login">
               Login

@@ -95,8 +95,7 @@ const Cart = () => {
 
   const subTotal = cart?.totalPrice || 0;
   const shipping = subTotal > 50 ? 0 : 100;
-  const tax = subTotal * 0.05;
-  const total = subTotal + tax + shipping;
+  const total = subTotal + shipping;
 
   return (
 
@@ -236,11 +235,6 @@ const Cart = () => {
                 </div>
 
                 <div className="flex justify-between">
-                  <span>TAX (5%)</span>
-                  <span>PKR {tax.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between">
                   <span>Shipping</span>
                   <span>PKR {shipping}</span>
                 </div>
@@ -252,22 +246,7 @@ const Cart = () => {
 
               </div>
 
-              {/* PROMO */}
               <div className='mt-6'>
-
-                <div className='flex gap-2'>
-
-                  <input
-                    type="text"
-                    placeholder='PROMO CODE'
-                    className='border border-primary/20 p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-primary'
-                  />
-
-                  <button className='btn-primary px-4 py-2 rounded'>
-                    Apply
-                  </button>
-
-                </div>
 
                 <button
                   onClick={() => navigate(`/address`)}

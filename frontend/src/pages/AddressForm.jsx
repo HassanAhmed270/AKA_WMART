@@ -49,8 +49,7 @@ const AddressForm = () => {
 
     const subTotal = cart?.totalPrice || 0;
     const shipping = subTotal > 50 ? 0 : 10;
-    const tax = Number((subTotal * 0.05).toFixed(2)) || 0;
-    const total = subTotal + shipping + tax;
+    const total = subTotal + shipping;
 
     // CART CHECK
     useEffect(() => {
@@ -130,7 +129,6 @@ const AddressForm = () => {
                 {
                     products: cart.items,
                     amount: total,
-                    tax,
                     shipping,
                     currency: "PKR",
                     orderType,
@@ -305,7 +303,6 @@ const AddressForm = () => {
                     <p>Items: {length}</p>
                     <p>Subtotal: PKR {subTotal}</p>
                     <p>Shipping: PKR {shipping}</p>
-                    <p>Tax: PKR {tax}</p>
 
                     <hr className="my-2" />
 

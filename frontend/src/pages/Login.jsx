@@ -233,7 +233,7 @@ const Login = () => {
               {/* FORGOT PASSWORD */}
               <Typography variant="body2" textAlign="center">
                 <Link
-                  to="/login"
+                  to="/forgot-password"
                   style={{
                     textDecoration: "none",
                     color: themeMode === "dark" ? "#60a5fa" : "#1d4ed8"

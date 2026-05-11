@@ -37,6 +37,8 @@ const Signup = () => {
     message: "",
     severity: "success"
   });
+  const [showReverify, setShowReverify] = useState(false);
+  const [reverifyEmail, setReverifyEmail] = useState("");
 
   // ✅ Detect theme from CSS variable (bg-background logic)
   useEffect(() => {
@@ -62,6 +64,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setShowReverify(false);
 
     try {
       const res = await axios.post(
@@ -80,13 +83,43 @@ const Signup = () => {
         setTimeout(() => navigate("/verify"), 1500);
       }
     } catch (error) {
+      const message = error.response?.data?.message || error.message;
       setToast({
         open: true,
-        message: `User already exist ${error.message}`,
+        message,
         severity: "error"
       });
+
+      if (message === "Account already exists but is not verified. Please verify your account.") {
+        setShowReverify(true);
+        setReverifyEmail(formData.email);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReverify = async () => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/user/reVerify`,
+        { email: reverifyEmail },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (res.data.success) {
+        setToast({
+          open: true,
+          message: "Verification Email Sent Again",
+          severity: "success"
+        });
+      }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: error.response?.data?.message || "Re-verify failed",
+        severity: "error"
+      });
     }
   };
 
@@ -277,6 +310,23 @@ const Signup = () => {
                   "Create Account"
                 )}
               </Button>
+
+              {showReverify && (
+                <Button
+                  onClick={handleReverify}
+                  variant="outlined"
+                  fullWidth
+                  sx={{
+                    mt: 2,
+                    py: 1.2,
+                    borderColor: "#1e3a8a",
+                    color: "#1e3a8a",
+                    "&:hover": { backgroundColor: "#0f172a", color: "#fff" }
+                  }}
+                >
+                  Re-verify Your Account
+                </Button>
+              )}
 
             </form>
             <Typography textAlign="center" sx={{ mt: 2 }}>

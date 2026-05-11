@@ -22,55 +22,75 @@ import ShowUserOrders from './pages/admin/ShowUserOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import SingleProduct from './pages/SingleProduct';
 import { setCart ,setProducts} from "./redux/productSlice";
+import { setUser } from "./redux/userSlice";
+import ForgotPassword from './pages/ForgotPassword';
 
 import { CartContext } from "./CartContext";
 import { useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch,useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 function App() {
-      const dispatch = useDispatch();
-    const cart = useSelector(state => state.products.cart);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const cart = useSelector(state => state.products.cart);
 
-useEffect(() => {
+  useEffect(() => {
+    const clearAuth = () => {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("persist:root");
+      dispatch(setUser(null));
+      navigate("/login");
+    };
 
-  const fetchData = async () => {
-
-    try {
-
-      const token = localStorage.getItem("accessToken");
-
-      // ================= CART =================
-      const cartRes = await axios.get(
-        `${import.meta.env.VITE_API_URL}/cart`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          clearAuth();
         }
-      );
-
-      if (cartRes.data.success) {
-        dispatch(setCart(cartRes.data.cart));
+        return Promise.reject(error);
       }
+    );
 
-      // ================= PRODUCTS =================
-      const productRes = await axios.get(
-        `${import.meta.env.VITE_API_URL}/product/get-all-products`
-      );
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
 
-      if (productRes.data.success) {
-        dispatch(setProducts(productRes.data.products));
+        // ================= CART =================
+        const cartRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/cart`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (cartRes.data.success) {
+          dispatch(setCart(cartRes.data.cart));
+        }
+
+        // ================= PRODUCTS =================
+        const productRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/product/get-all-products`
+        );
+
+        if (productRes.data.success) {
+          dispatch(setProducts(productRes.data.products));
+        }
+      } catch (error) {
+        console.log(error);
       }
+    };
 
-    } catch (error) {
-      console.log(error);
-    }
+    fetchData();
 
-  };
-
-  fetchData();
-
-}, [dispatch]);
+    return () => {
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, [dispatch, navigate]);
   const router = createBrowserRouter([
     {
       path: '/',
@@ -89,6 +109,10 @@ useEffect(() => {
     {
       path: '/login',
       element: <Login />
+    },
+    {
+      path: '/forgot-password',
+      element: <ForgotPassword />
     },
     {
       path: '/verify',
