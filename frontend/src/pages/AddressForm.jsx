@@ -10,6 +10,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Snackbar, Alert } from "@mui/material";
 import { useCartContext } from '../CartContext';
+import { clearGuestCart } from '../utils/guestCart';
 import { FaArrowLeft } from "react-icons/fa";
 
 const AddressForm = () => {
@@ -76,7 +77,7 @@ const AddressForm = () => {
         if (selectedAddress >= addresses.length) {
             dispatch(setSelectedAddress(null));
         }
-    }, [addresses.length]);
+    }, [addresses.length, selectedAddress, dispatch]);
 
     // ORDER TYPE CONTROL
     useEffect(() => {
@@ -100,6 +101,12 @@ const AddressForm = () => {
         try {
             const token = localStorage.getItem("accessToken");
 
+            if (!token) {
+                clearGuestCart();
+                dispatch(setCart({ items: [], totalPrice: 0 }));
+                return;
+            }
+
             const res = await axios.put(
                 `${import.meta.env.VITE_API_URL}/cart/clear`,
                 {},
@@ -114,8 +121,8 @@ const AddressForm = () => {
                 dispatch(setCart(res.data.cart));
             }
 
-        } catch (error) {
-            console.log(error);
+        } catch {
+            console.log("Failed to clear cart");
         }
     };
 
@@ -180,21 +187,26 @@ const AddressForm = () => {
                 };
             }
 
+            const body = {
+                products: cart.items.map(item => ({
+                  productId: item.productId?._id || item.productId,
+                  quantity: item.quantity
+                })),
+                amount: total,
+                shipping,
+                currency: "PKR",
+                orderType,
+                Details
+            };
+
+            const headers = token
+                ? { Authorization: `Bearer ${token}` }
+                : {};
+
             const res = await axios.post(
                 `${import.meta.env.VITE_API_URL}/orders/create`,
-                {
-                    products: cart.items,
-                    amount: total,
-                    shipping,
-                    currency: "PKR",
-                    orderType,
-                    Details
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+                body,
+                { headers }
             );
 
             setToast({
@@ -208,7 +220,7 @@ const AddressForm = () => {
                 navigate(`/order-success/${res.data.dbOrder._id}`);
             }, 1200);
 
-        } catch (error) {
+        } catch {
             setToast({
                 open: true,
                 message: "Order creation failed",

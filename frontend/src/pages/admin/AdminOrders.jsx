@@ -55,7 +55,7 @@ const AdminOrders = () => {
         setOrders(res.data.orders);
       }
 
-    } catch (error) {
+    } catch {
       setToast({
         open: true,
         message: "Failed to fetch orders",
@@ -99,7 +99,7 @@ const AdminOrders = () => {
         });
       }
 
-    } catch (error) {
+    } catch {
       setToast({
         open: true,
         message: "Update failed",
@@ -178,11 +178,12 @@ const handleWhatsApp = (order) => {
   // 🟢 SEARCH
   const filtered = orders.filter(order => {
     const t = search.toLowerCase();
+    const name = `${order.user?.firstName || order.guestDetails?.fullName || ""}`.toLowerCase();
+    const email = (order.user?.email || order.guestDetails?.email || "").toLowerCase();
 
     return (
-      order.user?.firstName?.toLowerCase().includes(t) ||
-      order.user?.lastName?.toLowerCase().includes(t) ||
-      order.user?.email?.toLowerCase().includes(t) ||
+      name.includes(t) ||
+      email.includes(t) ||
       order._id?.toLowerCase().includes(t) ||
       order.status?.toLowerCase().includes(t) ||
       String(order.amount)?.includes(t) ||
@@ -219,15 +220,17 @@ const handleWhatsApp = (order) => {
               {/* USER */}
               <div className="flex items-center gap-3">
                 <img
-                  src={order.user?.profilePic || userLogo}
+                  src={order.user?.profilePic || order.guestDetails?.profilePic || userLogo}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
                   <p className="text-[var(--color-text)] font-medium">
-                    {order.user?.firstName} {order.user?.lastName}
+                    {order.user?.firstName || order.user?.lastName
+                      ? `${order.user?.firstName || ""} ${order.user?.lastName || ""}`.trim()
+                      : order.guestDetails?.fullName || "Unknown User"}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {order.user?.email}
+                    {order.user?.email || order.guestDetails?.email || "No email"}
                   </p>
                 </div>
               </div>

@@ -8,6 +8,10 @@ import axios from 'axios';
 import { setCart } from '../redux/productSlice';
 import { Snackbar, Alert } from "@mui/material";
 import { useCartContext } from "../CartContext";
+import {
+  updateGuestCartQuantity,
+  removeFromGuestCart
+} from '../utils/guestCart';
 
 const Cart = () => {
 
@@ -26,6 +30,16 @@ const Cart = () => {
 
   const updateQuantity = async (productId, type) => {
     try {
+      if (!accessToken) {
+        const newCart = updateGuestCartQuantity(productId, type);
+        dispatch(setCart(newCart));
+        setToastState({
+          open: true,
+          message: "Quantity Updated",
+          severity: "success"
+        });
+        return;
+      }
 
       const res = await axios.put(
         `${API}/update`,
@@ -62,6 +76,16 @@ const Cart = () => {
   const handleRemove = async (productId) => {
 
     try {
+      if (!accessToken) {
+        const newCart = removeFromGuestCart(productId);
+        dispatch(setCart(newCart));
+        setToastState({
+          open: true,
+          message: "Product removed from cart",
+          severity: "success"
+        });
+        return;
+      }
 
       const res = await axios.delete(`${API}/remove`, {
         headers: {

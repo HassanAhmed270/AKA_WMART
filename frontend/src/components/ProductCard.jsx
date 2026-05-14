@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { setCart } from '../redux/productSlice';
 import { useDispatch } from 'react-redux';
+import { addToGuestCart } from '../utils/guestCart';
 
 const ProductCard = ({ product }) => {
     const { productName, productImg, productPrice } = product;
@@ -23,6 +24,17 @@ const ProductCard = ({ product }) => {
     const addToCart = async (productId) => {
         try {
             setLoading(true);
+
+            if (!accessToken) {
+                const newCart = addToGuestCart(product);
+                dispatch(setCart(newCart));
+                setToastState({
+                    open: true,
+                    message: "Product added to cart",
+                    severity: "success"
+                });
+                return;
+            }
 
             const res = await axios.post(
                 `${import.meta.env.VITE_API_URL}/cart/add/`,

@@ -23,6 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SingleProduct from './pages/SingleProduct';
 import { setCart ,setProducts} from "./redux/productSlice";
 import { setUser } from "./redux/userSlice";
+import { getGuestCart } from "./utils/guestCart";
 
 import { CartContext } from "./CartContext";
 import { useEffect } from 'react';
@@ -40,7 +41,7 @@ useEffect(() => {
 
       const token = localStorage.getItem("accessToken");
 
-      // ================= CART (only if logged in) =================
+      // ================= CART =================
       if (token) {
         try {
           const cartRes = await axios.get(
@@ -54,6 +55,7 @@ useEffect(() => {
 
           if (cartRes.data.success) {
             dispatch(setCart(cartRes.data.cart));
+            localStorage.removeItem("guestCart");
           }
         } catch (cartError) {
           if (cartError.response?.status === 401) {
@@ -65,6 +67,9 @@ useEffect(() => {
             return;
           }
         }
+      } else {
+        const guestCart = getGuestCart();
+        dispatch(setCart(guestCart));
       }
 
       // ================= PRODUCTS =================
