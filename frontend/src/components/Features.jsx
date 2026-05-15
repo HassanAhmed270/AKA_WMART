@@ -14,8 +14,8 @@ const Features = () => {
                         <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
                             <Truck className="h-6 w-6 text-primary text-amber-500" />
                         </div>
-                        <h3 className="font-semibold text-lg text-text dark:text-text-dark">Free Shipping</h3>
-                        <p className="text-text/70 dark:text-text-dark/70">On orders over $50</p>
+                        <h3 className="font-semibold text-lg text-text dark:text-text-dark">Delivery </h3>
+                        <p className="text-text/70 dark:text-text-dark/70">All Over Pakistan</p>
                     </div>
 
                     {/* Feature 2 */}
