@@ -79,12 +79,22 @@ const ForgotPassword = () => {
     }
   };
 
-  const handleReset = async (e) => {
+    const handleReset = async (e) => {
     e.preventDefault();
+
+    if (formData.newPassword.length < 8) {
+      setToast({ open: true, message: "Password must be at least 8 characters", severity: "error" });
+      return;
+    }
+    if (formData.newPassword !== formData.confirmPassword) {
+      setToast({ open: true, message: "Passwords do not match", severity: "error" });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await axios.post(
+      const verifyRes = await axios.post(
         `${import.meta.env.VITE_API_URL}/user/verify-otp/${formData.email}`,
         { otp: formData.otp },
         { headers: { "Content-Type": "application/json" } }
@@ -94,7 +104,8 @@ const ForgotPassword = () => {
         `${import.meta.env.VITE_API_URL}/user/change-password/${formData.email}`,
         {
           newPassword: formData.newPassword,
-          confirmPassword: formData.confirmPassword
+          confirmPassword: formData.confirmPassword,
+          resetToken: verifyRes.data.resetToken
         },
         { headers: { "Content-Type": "application/json" } }
       );

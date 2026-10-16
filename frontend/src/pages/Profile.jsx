@@ -106,7 +106,8 @@ const Profile = () => {
     try {
       const formData = new FormData();
 
-      Object.keys(updateUser).forEach(key => {
+            Object.keys(updateUser).forEach(key => {
+        if (key === "role") return;
         formData.append(key, updateUser[key]);
       });
 

@@ -19,8 +19,13 @@ const UserInfo = () => {
     if (!userId) return;
 
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/user/get-user/${userId}`
+            const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/user/get-user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+          }
+        }
       );
 
       if (res.data.success) {
