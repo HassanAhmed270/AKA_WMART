@@ -214,5 +214,5 @@ function App() {
     </CartContext.Provider>
   );
 }
-//ali baba
+
 export default App;
