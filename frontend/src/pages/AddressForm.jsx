@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from "axios";
 import {
@@ -31,6 +31,10 @@ const AddressForm = () => {
 
     const [placingOrder, setPlacingOrder] = useState(false);
 
+    // Set to true once the order is created, so that emptying the cart
+    // afterwards does not trigger the "cart is empty" redirect below.
+    const orderPlacedRef = useRef(false);
+
     const [toast, setToast] = useState({
         open: false,
         message: "",
@@ -61,7 +65,7 @@ const AddressForm = () => {
 
     // CART CHECK
     useEffect(() => {
-        if (length === 0) {
+        if (length === 0 && !orderPlacedRef.current) {
             setToast({
                 open: true,
                 message: "Cart is Empty",
@@ -208,6 +212,9 @@ const AddressForm = () => {
                 body,
                 { headers }
             );
+
+            // Order exists now: stop the empty-cart redirect from firing
+            orderPlacedRef.current = true;
 
             setToast({
                 open: true,
