@@ -63,7 +63,7 @@ const Hero = () => {
                             {/* GOLD OUTLINE BUTTON */}
                             <Button
                                 variant="outlined"
-                                onClick={() => navigate("/deals")}
+                                onClick={() => navigate("/products")}
                                 sx={{
                                     py: 1,
                                     px: 3,
@@ -77,7 +77,7 @@ const Hero = () => {
                                     }
                                 }}
                             >
-                                View Deals
+                                Browse Collection
                             </Button>
 
                         </div>

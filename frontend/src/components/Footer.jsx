@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import {
     FaFacebookF,
     FaInstagram,
@@ -13,7 +12,7 @@ const Footer = () => {
     return (
         <footer className="bg-[#0b1220] text-slate-300 pt-6 md:pt-12 pb-6">
 
-            <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
 
                 {/* Logo + Info */}
                 <div className="text-center sm:text-left">
@@ -36,63 +35,6 @@ const Footer = () => {
                     <p className="text-sm text-slate-400">
                         Phone: 0335 7428542
                     </p>
-                </div>
-
-                {/* Customer Service */}
-                <div className="text-center sm:text-left">
-
-                    <h3 className="text-slate-100 font-semibold mb-3">
-                        Customer Service
-                    </h3>
-
-                    <ul className="space-y-2 text-sm">
-
-                        <li>
-                            <Link
-                                to="/contact"
-                                className="hover:text-[#d4af37] transition"
-                            >
-                                Contact Us
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link
-                                to="/returns"
-                                className="hover:text-[#d4af37] transition"
-                            >
-                                Shipping & Returns
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link
-                                to="/faqs"
-                                className="hover:text-[#d4af37] transition"
-                            >
-                                FAQs
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link
-                                to="/tracking"
-                                className="hover:text-[#d4af37] transition"
-                            >
-                                Order Tracking
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link
-                                to="/size-guide"
-                                className="hover:text-[#d4af37] transition"
-                            >
-                                Size Guide
-                            </Link>
-                        </li>
-
-                    </ul>
                 </div>
 
                 {/* Social */}

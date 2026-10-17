@@ -21,6 +21,9 @@ import UserInfo from './pages/admin/UserInfo';
 import ShowUserOrders from './pages/admin/ShowUserOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import SingleProduct from './pages/SingleProduct';
+import ForgotPassword from './pages/ForgotPassword';
+import OrderSuccess from './pages/OrderSuccess';
+import NotFound from './pages/NotFound';
 import { setCart ,setProducts} from "./redux/productSlice";
 import { setUser } from "./redux/userSlice";
 import { getGuestCart } from "./utils/guestCart";
@@ -110,6 +113,10 @@ useEffect(() => {
       element: <Login />
     },
     {
+      path: '/forgot-password',
+      element: <ForgotPassword />
+    },
+    {
       path: '/verify',
       element: <Verify />
     },
@@ -147,6 +154,15 @@ useEffect(() => {
       element: <AddressForm />
     },
     {
+      path: '/order-success/:orderId',
+      element: (
+        <>
+          <Navbar />
+          <OrderSuccess />
+        </>
+      )
+    },
+    {
       path: '/dashboard',
       element: (
         <ProtectedRoute>
@@ -175,6 +191,16 @@ useEffect(() => {
           )
         }
       ]
+    },
+    {
+      path: '*',
+      element: (
+        <>
+          <Navbar />
+          <NotFound />
+          <Footer />
+        </>
+      )
     }
   ]);
 
