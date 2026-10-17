@@ -59,9 +59,9 @@ const AddressForm = () => {
 
     const [showForm, setShowForm] = useState(false);
 
+    // Display only. The server recomputes the real total from database prices.
+    // Shipping is agreed over WhatsApp before confirmation, so it is not added.
     const subTotal = cart?.totalPrice || 0;
-    const shipping = subTotal > 50 ? 0 : 10;
-    const total = subTotal + shipping;
 
     // CART CHECK
     useEffect(() => {
@@ -191,13 +191,13 @@ const AddressForm = () => {
                 };
             }
 
+            // Amount and shipping are intentionally NOT sent: the server
+            // calculates the total from database prices.
             const body = {
                 products: cart.items.map(item => ({
                   productId: item.productId?._id || item.productId,
                   quantity: item.quantity
                 })),
-                amount: total,
-                shipping,
                 currency: "PKR",
                 orderType,
                 Details
@@ -227,10 +227,10 @@ const AddressForm = () => {
                 navigate(`/order-success/${res.data.dbOrder._id}`);
             }, 1200);
 
-        } catch {
+        } catch (error) {
             setToast({
                 open: true,
-                message: "Order creation failed",
+                message: error.response?.data?.message || "Order creation failed",
                 severity: "error"
             });
         } finally {
@@ -371,12 +371,13 @@ const AddressForm = () => {
                     <h2 className="font-semibold mb-3">Order Summary</h2>
 
                     <p>Items: {length}</p>
-                    <p>Subtotal: PKR {subTotal}</p>
-                    <p>Shipping: PKR {shipping}</p>
+                    <p className="font-bold">Subtotal: PKR {subTotal}</p>
 
                     <hr className="my-2" />
 
-                    <p className="font-bold">Total: PKR {total}</p>
+                    <p className="text-sm opacity-70">
+                        Shipping charges will be communicated through WhatsApp before order confirmation.
+                    </p>
                 </div>
 
             </div>

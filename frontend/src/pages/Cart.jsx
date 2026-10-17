@@ -117,9 +117,9 @@ const Cart = () => {
     }
   };
 
+  // Shipping is not charged automatically: it is agreed with the buyer on
+  // WhatsApp before the order is confirmed. Only the product subtotal is shown.
   const subTotal = cart?.totalPrice || 0;
-  const shipping = subTotal > 50 ? 0 : 100;
-  const total = subTotal + shipping;
 
   return (
 
@@ -253,20 +253,14 @@ const Cart = () => {
 
               <div className='space-y-4 text-text dark:text-text-dark'>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between font-bold">
                   <span>Subtotal ({cart?.items?.length} items)</span>
                   <span>PKR {subTotal.toLocaleString()}</span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>PKR {shipping}</span>
-                </div>
-
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span>PKR {total.toFixed(2)}</span>
-                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Shipping charges will be communicated through WhatsApp before order confirmation.
+                </p>
 
               </div>
 
@@ -292,7 +286,6 @@ const Cart = () => {
               {/* INFO */}
               <div className="text-sm text-gray-500 dark:text-gray-400 pt-4">
 
-                <p>* Free Shipping on Orders Over 50 PKR</p>
                 <p>* 30 Days Return Policy</p>
                 <p>* Cash on Delivery Available</p>
 
