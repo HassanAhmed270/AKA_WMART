@@ -32,179 +32,187 @@ import { CartContext } from "./CartContext";
 import { useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch,useSelector } from 'react-redux';
+
+// Router is created ONCE at module scope. Creating it inside App() rebuilt it
+// on every cart change, which remounted the page tree and made navigate()
+// calls (e.g. to /order-success/:id) change the URL without changing the page.
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <>
+        <Navbar />
+        <Home />
+        <Footer />
+      </>
+    )
+  },
+  {
+    path: '/signup',
+    element: <Signup />
+  },
+  {
+    path: '/login',
+    element: <Login />
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />
+  },
+  {
+    path: '/verify',
+    element: <Verify />
+  },
+  {
+    path: '/verify/:token',
+    element: <VerifyEmail />
+  },
+  {
+    path: '/profile/:userId',
+    element: (
+      <ProtectedRoute>
+        <>
+          <Navbar />
+          <Profile />
+          <Footer />
+        </>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/products',
+    element: <><Navbar/> <Products /></>
+  },
+  {
+    path: '/products/:id',
+    element: <><Navbar/> <SingleProduct /></>
+  },
+  {
+    path: '/cart',
+    element: <Cart />
+  },
+  {
+    path: '/address',
+    element: <AddressForm />
+  },
+  {
+    path: '/order-success/:orderId',
+    element: (
+      <>
+        <Navbar />
+        <OrderSuccess />
+      </>
+    )
+  },
+  {
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute>
+        <>
+          <Navbar />
+          <Dashboard />
+        </>
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "insights", element: <AdminSales /> },
+      { path: "add-products", element: <AddProduct /> },
+      { path: "products", element: <AdminProduct /> },
+      { path: "orders", element: <AdminOrders /> },
+      { path: "users/orders/:userId", element: <ShowUserOrders /> },
+      { path: "users", element: (
+          <ProtectedRoute adminOnly={true}>
+            <AdminUsers />
+          </ProtectedRoute>
+        )
+      },
+      { path: "users/:userId", element: (
+          <ProtectedRoute adminOnly={true}>
+            <UserInfo />
+          </ProtectedRoute>
+        )
+      }
+    ]
+  },
+  {
+    path: '*',
+    element: (
+      <>
+        <Navbar />
+        <NotFound />
+        <Footer />
+      </>
+    )
+  }
+]);
+
 function App() {
-      const dispatch = useDispatch();
-    const cart = useSelector(state => state.products.cart);
+  const dispatch = useDispatch();
+  const cart = useSelector(state => state.products.cart);
 
-useEffect(() => {
+  useEffect(() => {
 
-  const fetchData = async () => {
+    const fetchData = async () => {
 
-    try {
+      try {
 
-      const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken");
 
-      // ================= CART =================
-      if (token) {
-        try {
-          const cartRes = await axios.get(
-            `${import.meta.env.VITE_API_URL}/cart`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
+        // ================= CART =================
+        if (token) {
+          try {
+            const cartRes = await axios.get(
+              `${import.meta.env.VITE_API_URL}/cart`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
               }
+            );
+
+            if (cartRes.data.success) {
+              dispatch(setCart(cartRes.data.cart));
+              localStorage.removeItem("guestCart");
             }
-          );
-
-          if (cartRes.data.success) {
-            dispatch(setCart(cartRes.data.cart));
-            localStorage.removeItem("guestCart");
+          } catch (cartError) {
+            if (cartError.response?.status === 401) {
+              localStorage.removeItem("accessToken");
+              localStorage.removeItem("user");
+              localStorage.removeItem("persist:root");
+              dispatch(setUser(null));
+              window.location.href = "/login";
+              return;
+            }
           }
-        } catch (cartError) {
-          if (cartError.response?.status === 401) {
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("user");
-            localStorage.removeItem("persist:root");
-            dispatch(setUser(null));
-            window.location.href = "/login";
-            return;
-          }
+        } else {
+          const guestCart = getGuestCart();
+          dispatch(setCart(guestCart));
         }
-      } else {
-        const guestCart = getGuestCart();
-        dispatch(setCart(guestCart));
+
+        // ================= PRODUCTS =================
+        const productRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/product/get-all-products`
+        );
+
+        if (productRes.data.success) {
+          dispatch(setProducts(productRes.data.products));
+        }
+
+      } catch (error) {
+        console.log(error);
       }
 
-      // ================= PRODUCTS =================
-      const productRes = await axios.get(
-        `${import.meta.env.VITE_API_URL}/product/get-all-products`
-      );
+    };
 
-      if (productRes.data.success) {
-        dispatch(setProducts(productRes.data.products));
-      }
+    fetchData();
 
-    } catch (error) {
-      console.log(error);
-    }
+  }, [dispatch]);
 
-  };
-
-  fetchData();
-
-}, [dispatch]);
-  const router = createBrowserRouter([
-    {
-      path: '/',
-      element: (
-        <>
-          <Navbar />
-          <Home />
-          <Footer />
-        </>
-      )
-    },
-    {
-      path: '/signup',
-      element: <Signup />
-    },
-    {
-      path: '/login',
-      element: <Login />
-    },
-    {
-      path: '/forgot-password',
-      element: <ForgotPassword />
-    },
-    {
-      path: '/verify',
-      element: <Verify />
-    },
-    {
-      path: '/verify/:token',
-      element: <VerifyEmail />
-    },
-    {
-      path: '/profile/:userId',
-      element: (
-        <ProtectedRoute>
-          <>
-            <Navbar />
-            <Profile />
-            <Footer />
-          </>
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/products',
-
-      element:<><Navbar/> <Products /></>
-    },
-    {
-      path: '/products/:id',
-      element:<><Navbar/> <SingleProduct /></>
-    },
-    {
-      path: '/cart',
-      element: <Cart />
-    },
-     {
-      path: '/address',
-      element: <AddressForm />
-    },
-    {
-      path: '/order-success/:orderId',
-      element: (
-        <>
-          <Navbar />
-          <OrderSuccess />
-        </>
-      )
-    },
-    {
-      path: '/dashboard',
-      element: (
-        <ProtectedRoute>
-          <>
-            <Navbar />
-            <Dashboard />
-          </>
-        </ProtectedRoute>
-      ),
-      children: [
-        { path: "insights", element: <AdminSales /> },
-        { path: "add-products", element: <AddProduct /> },
-        { path: "products", element: <AdminProduct /> },
-        { path: "orders", element: <AdminOrders /> },
-        { path: "users/orders/:userId", element: <ShowUserOrders /> },
-        { path: "users", element: (
-            <ProtectedRoute adminOnly={true}>
-              <AdminUsers />
-            </ProtectedRoute>
-          )
-        },
-        { path: "users/:userId", element: (
-            <ProtectedRoute adminOnly={true}>
-              <UserInfo />
-            </ProtectedRoute>
-          )
-        }
-      ]
-    },
-    {
-      path: '*',
-      element: (
-        <>
-          <Navbar />
-          <NotFound />
-          <Footer />
-        </>
-      )
-    }
-  ]);
-
-  return  <CartContext.Provider value={{ cart }}> <RouterProvider router={router}/> </CartContext.Provider>
+  return (
+    <CartContext.Provider value={{ cart }}>
+      <RouterProvider router={router} />
+    </CartContext.Provider>
+  );
 }
 
 export default App;
