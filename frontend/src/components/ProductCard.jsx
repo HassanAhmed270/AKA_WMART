@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { setCart } from '../redux/productSlice';
 import { useDispatch } from 'react-redux';
 import { addToGuestCart } from '../utils/guestCart';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const ProductCard = ({ product }) => {
     const { productName, productImg, productPrice } = product;
@@ -19,11 +20,12 @@ const ProductCard = ({ product }) => {
         severity: "success"
     });
 
-    const accessToken = localStorage.getItem('accessToken');
-
     const addToCart = async (productId) => {
         try {
             setLoading(true);
+
+            // read at click time so a login/logout without a re-render is respected
+            const accessToken = localStorage.getItem('accessToken');
 
             if (!accessToken) {
                 const newCart = addToGuestCart(product);
@@ -61,7 +63,7 @@ const ProductCard = ({ product }) => {
 
             setToastState({
                 open: true,
-                message: error.response?.data?.message || "Something went wrong",
+                message: getErrorMessage(error, "Something went wrong"),
                 severity: "error"
             });
 

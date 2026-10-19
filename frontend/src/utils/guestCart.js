@@ -1,5 +1,9 @@
 const GUEST_CART_KEY = "guestCart";
 
+// Same limit the server enforces for orders and carts.
+export const MAX_QTY_PER_PRODUCT = 5;
+export const MAX_QTY_MESSAGE = `Maximum ${MAX_QTY_PER_PRODUCT} units per product per order`;
+
 export const getGuestCart = () => {
   try {
     const data = localStorage.getItem(GUEST_CART_KEY);
@@ -30,18 +34,31 @@ export const calculateGuestTotal = (items) => {
   }, 0);
 };
 
-export const addToGuestCart = (product) => {
+// Throws an Error (with a user-readable message) when the quantity is invalid
+// or would exceed the per-product limit.
+export const addToGuestCart = (product, quantity = 1) => {
+  const qty = Number(quantity);
+  if (!Number.isInteger(qty) || qty < 1) {
+    throw new Error("Invalid quantity");
+  }
+
   const cart = getGuestCart();
   const itemIndex = cart.items.findIndex(
     (item) => item.productId?._id === product._id
   );
 
   if (itemIndex > -1) {
-    cart.items[itemIndex].quantity += 1;
+    if (cart.items[itemIndex].quantity + qty > MAX_QTY_PER_PRODUCT) {
+      throw new Error(MAX_QTY_MESSAGE);
+    }
+    cart.items[itemIndex].quantity += qty;
   } else {
+    if (qty > MAX_QTY_PER_PRODUCT) {
+      throw new Error(MAX_QTY_MESSAGE);
+    }
     cart.items.push({
       productId: product,
-      quantity: 1,
+      quantity: qty,
       price: product.productPrice || product.price || 0
     });
   }
@@ -59,6 +76,9 @@ export const updateGuestCartQuantity = (productId, type) => {
   if (!item) return cart;
 
   if (type === "increase") {
+    if (item.quantity >= MAX_QTY_PER_PRODUCT) {
+      throw new Error(MAX_QTY_MESSAGE);
+    }
     item.quantity += 1;
   } else if (type === "decrease" && item.quantity > 1) {
     item.quantity -= 1;

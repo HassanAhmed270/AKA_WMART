@@ -24,9 +24,8 @@ import SingleProduct from './pages/SingleProduct';
 import ForgotPassword from './pages/ForgotPassword';
 import OrderSuccess from './pages/OrderSuccess';
 import NotFound from './pages/NotFound';
-import { setCart ,setProducts} from "./redux/productSlice";
-import { setUser } from "./redux/userSlice";
-import { getGuestCart } from "./utils/guestCart";
+import { setProducts } from "./redux/productSlice";
+import { syncCart } from "./utils/cartSync";
 
 import { CartContext } from "./CartContext";
 import { useEffect } from 'react';
@@ -149,47 +148,22 @@ const router = createBrowserRouter([
 function App() {
   const dispatch = useDispatch();
   const cart = useSelector(state => state.products.cart);
+  const userId = useSelector(state => state.user.user?._id);
 
+  // The cart follows the session: after login the account cart is loaded (a
+  // guest cart is merged into it), after logout the guest cart is shown again,
+  // and an expired token clears the dead session.
+  useEffect(() => {
+    syncCart(dispatch);
+  }, [dispatch, userId]);
+
+  // Products load once
   useEffect(() => {
 
-    const fetchData = async () => {
+    const fetchProducts = async () => {
 
       try {
 
-        const token = localStorage.getItem("accessToken");
-
-        // ================= CART =================
-        if (token) {
-          try {
-            const cartRes = await axios.get(
-              `${import.meta.env.VITE_API_URL}/cart`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`
-                }
-              }
-            );
-
-            if (cartRes.data.success) {
-              dispatch(setCart(cartRes.data.cart));
-              localStorage.removeItem("guestCart");
-            }
-          } catch (cartError) {
-            if (cartError.response?.status === 401) {
-              localStorage.removeItem("accessToken");
-              localStorage.removeItem("user");
-              localStorage.removeItem("persist:root");
-              dispatch(setUser(null));
-              window.location.href = "/login";
-              return;
-            }
-          }
-        } else {
-          const guestCart = getGuestCart();
-          dispatch(setCart(guestCart));
-        }
-
-        // ================= PRODUCTS =================
         const productRes = await axios.get(
           `${import.meta.env.VITE_API_URL}/product/get-all-products`
         );
@@ -204,7 +178,7 @@ function App() {
 
     };
 
-    fetchData();
+    fetchProducts();
 
   }, [dispatch]);
 

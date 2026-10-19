@@ -5,9 +5,12 @@ import axios from 'axios';
 import { setCart } from '../redux/productSlice';
 import { useDispatch } from 'react-redux';
 import ProductImg from './ProductImg';
+import { addToGuestCart, MAX_QTY_PER_PRODUCT } from '../utils/guestCart';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const ProductDesc = ({ product }) => {
     const [loading, setLoading] = useState(false);
+    const [quantity, setQuantity] = useState(1);
     const dispatch = useDispatch();
 
     const [toastState, setToastState] = useState({
@@ -16,15 +19,37 @@ const ProductDesc = ({ product }) => {
         severity: "success"
     });
 
-    const accessToken = localStorage.getItem('accessToken');
+    const handleQuantityChange = (e) => {
+        const n = parseInt(e.target.value, 10);
+        if (Number.isNaN(n)) {
+            setQuantity(1);
+            return;
+        }
+        setQuantity(Math.min(MAX_QTY_PER_PRODUCT, Math.max(1, n)));
+    };
 
     const addToCart = async (productId) => {
         try {
             setLoading(true);
 
+            // read at click time so a login/logout without a re-render is respected
+            const accessToken = localStorage.getItem('accessToken');
+
+            // Guests: same local cart the product cards use
+            if (!accessToken) {
+                const newCart = addToGuestCart(product, quantity);
+                dispatch(setCart(newCart));
+                setToastState({
+                    open: true,
+                    message: "Product added to cart",
+                    severity: "success"
+                });
+                return;
+            }
+
             const res = await axios.post(
                 `${import.meta.env.VITE_API_URL}/cart/add`,
-                { productId },
+                { productId, quantity },
                 {
                     headers: {
                         Authorization: `Bearer ${accessToken}`
@@ -45,7 +70,7 @@ const ProductDesc = ({ product }) => {
         } catch (error) {
             setToastState({
                 open: true,
-                message: error.response?.data?.message || "Something went wrong",
+                message: getErrorMessage(error, "Something went wrong"),
                 severity: "error"
             });
 
@@ -101,14 +126,18 @@ const ProductDesc = ({ product }) => {
                     {/* Quantity */}
                     <div className="flex flex-col  gap-3">
                         <label className='text-lg md:text-base font-semibold'>
-                            Quantity
+                            Quantity (max {MAX_QTY_PER_PRODUCT})
                         </label>
 
                         <input
                             type="number"
+                            min={1}
+                            max={MAX_QTY_PER_PRODUCT}
+                            step={1}
+                            value={quantity}
+                            onChange={handleQuantityChange}
                             className="w-full  h-11 px-3 border border-primary/20 rounded-md 
                                        focus:outline-none focus:ring-2 focus:ring-primary"
-                            defaultValue={1}
                         />
                     </div>
 

@@ -12,6 +12,7 @@ import {
   updateGuestCartQuantity,
   removeFromGuestCart
 } from '../utils/guestCart';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const Cart = () => {
 
@@ -66,7 +67,7 @@ const Cart = () => {
 
       setToastState({
         open: true,
-        message: "Quantity cannot be updated",
+        message: getErrorMessage(error, "Quantity cannot be updated"),
         severity: "error"
       });
 
