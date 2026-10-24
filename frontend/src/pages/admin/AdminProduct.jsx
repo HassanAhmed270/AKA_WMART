@@ -123,14 +123,39 @@ const AdminProduct = () => {
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
+    if (!formData.productImg?.length) {
+      setToast({
+        open: true,
+        message: "At least one image is required",
+        severity: "error"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const accessToken = localStorage.getItem("accessToken");
 
+      const data = new FormData();
+      data.append("productName", formData.productName);
+      data.append("productPrice", formData.productPrice);
+      data.append("brand", formData.brand);
+      data.append("category", formData.category);
+      data.append("productDescription", formData.productDescription);
+      data.append("quantity", formData.quantity === "" ? "0" : formData.quantity);
+      data.append("existingImages", JSON.stringify(
+        formData.productImg
+          .filter((image) => !(image instanceof File) && image?.public_id)
+          .map((image) => image.public_id)
+      ));
+      formData.productImg
+        .filter((image) => image instanceof File)
+        .forEach((file) => data.append("file", file));
+
       const res = await axios.put(
         `${import.meta.env.VITE_API_URL}/product/update/${selectedProduct._id}`,
-        formData,
+        data,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`
@@ -300,6 +325,8 @@ const AdminProduct = () => {
           <TextField label="Category" name="category"
             value={formData.category} onChange={handleChange} fullWidth />
 
+          <p>Current stock: {selectedProduct?.stock ?? 0}</p>
+
           <TextField
             label="Quantity Change"
             name="quantity"
@@ -314,7 +341,15 @@ const AdminProduct = () => {
             value={formData.productDescription}
             onChange={handleChange} multiline rows={3} fullWidth />
 
-          <ImageUpload formData={formData} setFormData={setFormData} />
+          <ImageUpload
+            formData={formData}
+            setFormData={setFormData}
+            onLimit={(message) => setToast({
+              open: true,
+              message,
+              severity: "error"
+            })}
+          />
 
         </DialogContent>
 

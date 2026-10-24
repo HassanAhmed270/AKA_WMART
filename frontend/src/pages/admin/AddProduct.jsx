@@ -223,6 +223,11 @@ const AddProduct = () => {
             <ImageUpload
               formData={formData}
               setFormData={setFormData}
+              onLimit={(message) => setToast({
+                open: true,
+                message,
+                severity: "error"
+              })}
             />
 
             {/* BUTTON */}

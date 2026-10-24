@@ -1,15 +1,20 @@
 import React from 'react';
 import { RiDeleteBin6Line } from "react-icons/ri";
 
-const ImageUpload = ({ formData, setFormData }) => {
+const ImageUpload = ({ formData, setFormData, onLimit }) => {
 
   // ✅ handle image selection
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+    const images = [...(formData.productImg || []), ...files];
+
+    if (images.length > 5) {
+      onLimit?.("Maximum 5 images allowed");
+    }
 
     setFormData({
       ...formData,
-      productImg: [...(formData.productImg || []), ...files]
+      productImg: images.slice(0, 5)
     });
   };
 
