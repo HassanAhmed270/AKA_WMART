@@ -79,7 +79,11 @@ const Login = () => {
     } catch (error) {
       setToast({
         open: true,
-        message: "Invalid Credentials",
+        message: error.response?.data?.message || (
+          error.response
+            ? "Login failed. Please try again."
+            : "Cannot reach the server. Please try again."
+        ),
         severity: "error"
       });
     } finally {

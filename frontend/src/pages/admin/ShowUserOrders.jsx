@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaArrowLeft } from "react-icons/fa";
 
 const ShowUserOrders = () => {
   const navigate = useNavigate();
@@ -11,28 +10,34 @@ const ShowUserOrders = () => {
 
   const accessToken = localStorage.getItem("accessToken");
 
-  const getUserOrders = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/orders/user-order/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        }
-      );
-
-      if (res.data.success) {
-        setUserOrder(res.data);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   useEffect(() => {
+    let cancelled = false;
+
+    const getUserOrders = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/orders/user-order/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+
+        if (!cancelled && res.data.success) {
+          setUserOrder(res.data);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
     getUserOrders();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, accessToken]);
 
   return (
     <div className="
@@ -45,8 +50,6 @@ const ShowUserOrders = () => {
 
       {/* MAIN CONTAINER */}
       <div className="w-full max-w-4xl ">
-
-      
 
         {/* TITLE */}
         <h2 className="text-2xl md:text-3xl font-bold mb-6">
@@ -126,42 +129,51 @@ const ShowUserOrders = () => {
 
                   <div className="space-y-2">
 
-                    {order.products?.map((item, i) => (
-                      <div
-                        key={i}
-                        onClick={() => navigate(`/products/${item.productId?._id}`)}
-                        className="
-                          flex flex-col sm:flex-row
-                          items-start sm:items-center
-                          gap-3
-                          bg-white/5
-                          p-3
-                          rounded-lg
-                          cursor-pointer
-                        "
-                      >
+                    {order.products?.map((item, i) => {
+                      const product = item.productId;
+                      const productId = product?._id;
 
-                        <img
-                          src={item.productId?.productImg?.[0]?.url}
-                          className="w-14 h-14 object-cover rounded"
-                          alt=""
-                        />
+                      return (
+                        <div
+                          key={i}
+                          onClick={productId ? () => navigate(`/products/${productId}`) : undefined}
+                          className={`
+                            flex flex-col sm:flex-row
+                            items-start sm:items-center
+                            gap-3
+                            bg-white/5
+                            p-3
+                            rounded-lg
+                            ${productId ? "cursor-pointer" : ""}
+                          `}
+                        >
 
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate">
-                            {item.productId?.productName}
+                          {productId && (
+                            <img
+                              src={product.productImg?.[0]?.url}
+                              className="w-14 h-14 object-cover rounded"
+                              alt=""
+                            />
+                          )}
+
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate">
+                              {productId ? product.productName : "Deleted product"}
+                            </p>
+                            {productId && (
+                              <p className="text-sm text-gray-400 truncate">
+                                {productId}
+                              </p>
+                            )}
+                          </div>
+
+                          <p className="font-medium">
+                            {productId ? `PKR ${product.productPrice} \u00d7 ${item.quantity}` : "-"}
                           </p>
-                          <p className="text-sm text-gray-400 truncate">
-                            {item.productId?._id}
-                          </p>
+
                         </div>
-
-                        <p className="font-medium">
-                          PKR {item.productId?.productPrice} × {item.quantity}
-                        </p>
-
-                      </div>
-                    ))}
+                      );
+                    })}
 
                   </div>
 

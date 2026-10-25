@@ -20,45 +20,45 @@ const Tabs = ({
   // 🔥 NEW: lock per order (prevents multiple clicks)
   const [loadingInquiryId, setLoadingInquiryId] = useState(null);
 
-const inquireOrder = async (order) => {
-  try {
-    const orderId = order._id;
-    const accessToken = localStorage.getItem("accessToken");
+  const inquireOrder = async (order) => {
+    try {
+      const orderId = order._id;
+      const accessToken = localStorage.getItem("accessToken");
 
-    if (loadingInquiryId === orderId) return;
-    setLoadingInquiryId(orderId);
+      if (loadingInquiryId === orderId) return;
+      setLoadingInquiryId(orderId);
 
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/orders/inquire`,
-      { orderId },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/orders/inquire`,
+        { orderId },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
         }
+      );
+
+      if (res.data.success && res.data.url) {
+        const url = res.data.url;
+
+        const newTab = window.open(url, "_blank");
+
+        if (!newTab) {
+          window.location.href = url;
+        }
+
+        alert("WhatsApp opened successfully.");
+      } else {
+        alert("Failed to generate inquiry link");
       }
-    );
 
-    if (res.data.success && res.data.url) {
-      const url = res.data.url;
-
-      const newTab = window.open(url, "_blank");
-
-      if (!newTab) {
-        window.location.href = url;
-      }
-
-      alert("WhatsApp opened successfully.");
-    } else {
-      alert("Failed to generate inquiry link");
+    } catch (error) {
+      console.log("Inquiry error:", error);
+      alert("Failed to send inquiry");
+    } finally {
+      setLoadingInquiryId(null);
     }
-
-  } catch (error) {
-    console.log("Inquiry error:", error);
-    alert("Failed to send inquiry");
-  } finally {
-    setLoadingInquiryId(null);
-  }
-};
+  };
 
   return (
     <div className="flex flex-col items-center mt-6 md:mt-10 px-3 md:px-0 w-full">
@@ -293,34 +293,43 @@ const inquireOrder = async (order) => {
                     {/* PRODUCTS */}
                     <div className="space-y-2">
 
-                      {order.products?.map((item, i) => (
-                        <div
-                          key={i}
-                          onClick={() => navigate(`/products/${item.productId._id}`)}
-                          className="flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white/10 p-2 rounded-lg"
-                        >
+                      {order.products?.map((item, i) => {
+                        const product = item.productId;
+                        const productId = product?._id;
 
-                          <img
-                            src={item.productId?.productImg?.[0]?.url}
-                            className="w-12 h-12 md:w-14 md:h-14 object-cover rounded"
-                            alt=""
-                          />
+                        return (
+                          <div
+                            key={i}
+                            onClick={productId ? () => navigate(`/products/${productId}`) : undefined}
+                            className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white/10 p-2 rounded-lg ${productId ? "cursor-pointer" : ""}`}
+                          >
 
-                          <div className="flex-1 min-w-0">
-                            <p className="break-words text-[var(--color-text)]">
-                              {item.productId?.productName}
+                            {productId && (
+                              <img
+                                src={product.productImg?.[0]?.url}
+                                className="w-12 h-12 md:w-14 md:h-14 object-cover rounded"
+                                alt=""
+                              />
+                            )}
+
+                            <div className="flex-1 min-w-0">
+                              <p className="break-words text-[var(--color-text)]">
+                                {productId ? product.productName : "Deleted product"}
+                              </p>
+                              {productId && (
+                                <p className="text-xs text-gray-400">
+                                  {productId}
+                                </p>
+                              )}
+                            </div>
+
+                            <p className="text-[var(--color-text)] font-medium">
+                              {productId ? `PKR ${product.productPrice} \u00d7 ${item.quantity}` : "-"}
                             </p>
-                            <p className="text-xs text-gray-400">
-                              {item.productId?._id}
-                            </p>
+
                           </div>
-
-                          <p className="text-[var(--color-text)] font-medium">
-                            PKR {item.productId?.productPrice} × {item.quantity}
-                          </p>
-
-                        </div>
-                      ))}
+                        );
+                      })}
 
                     </div>
 

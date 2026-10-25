@@ -1,0 +1,70 @@
+﻿diff --git a/frontend/src/App.jsx b/frontend/src/App.jsx
+index eee948f..2df4c3c 100644
+--- a/frontend/src/App.jsx
++++ b/frontend/src/App.jsx
+@@ -106,7 +106,7 @@ const router = createBrowserRouter([
+   {
+     path: '/dashboard',
+     element: (
+-      <ProtectedRoute>
++      <ProtectedRoute roles={["admin", "worker"]}>
+         <>
+           <Navbar />
+           <Dashboard />
+@@ -120,13 +120,13 @@ const router = createBrowserRouter([
+       { path: "orders", element: <AdminOrders /> },
+       { path: "users/orders/:userId", element: <ShowUserOrders /> },
+       { path: "users", element: (
+-          <ProtectedRoute adminOnly={true}>
++          <ProtectedRoute roles={["admin"]}>
+             <AdminUsers />
+           </ProtectedRoute>
+         )
+       },
+       { path: "users/:userId", element: (
+-          <ProtectedRoute adminOnly={true}>
++          <ProtectedRoute roles={["admin"]}>
+             <UserInfo />
+           </ProtectedRoute>
+         )
+diff --git a/frontend/src/components/ProtectedRoute.jsx b/frontend/src/components/ProtectedRoute.jsx
+index a1f4658..8509bf2 100644
+--- a/frontend/src/components/ProtectedRoute.jsx
++++ b/frontend/src/components/ProtectedRoute.jsx
+@@ -2,7 +2,7 @@ import React from 'react';
+ import { useSelector } from 'react-redux';
+ import { Navigate } from 'react-router-dom';
+ 
+-const ProtectedRoute = ({ children, adminOnly = false }) => {
++const ProtectedRoute = ({ children, adminOnly = false, roles }) => {
+     const user = useSelector(store => store.user.user);
+ 
+     // Not logged in
+@@ -10,6 +10,10 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
+         return <Navigate to="/login" replace />;
+     }
+ 
++    if (roles && !roles.includes(user.role)) {
++        return <Navigate to="/" replace />;
++    }
++
+     // Admin or worker dashboard access
+     if (adminOnly && !(user.role === "admin" || user.role === "worker")) {
+         return <Navigate to="/" replace />;
+diff --git a/frontend/src/pages/Login.jsx b/frontend/src/pages/Login.jsx
+index b45d925..e9a78f3 100644
+--- a/frontend/src/pages/Login.jsx
++++ b/frontend/src/pages/Login.jsx
+@@ -79,7 +79,11 @@ const Login = () => {
+     } catch (error) {
+       setToast({
+         open: true,
+-        message: "Invalid Credentials",
++        message: error.response?.data?.message || (
++          error.response
++            ? "Login failed. Please try again."
++            : "Cannot reach the server. Please try again."
++        ),
+         severity: "error"
+       });
+     } finally {

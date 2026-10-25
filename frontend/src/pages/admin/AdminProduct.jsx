@@ -6,6 +6,7 @@ import { CiTrash } from "react-icons/ci";
 import axios from "axios";
 import { setProducts } from '../../redux/productSlice';
 import { LuLoaderCircle } from "react-icons/lu";
+import { MAX_PRODUCT_PRICE } from '../../utils/productLimits';
 
 import {
   Dialog,
@@ -32,7 +33,6 @@ const AdminProduct = () => {
   const [filter, setFilter] = useState("");
 
   const [displayOrder, setDisplayOrder] = useState("lowToHigh");
-  const [priceRange] = useState([0, 10000]);
 
   const [filteredList, setFilteredList] = useState([]);
 
@@ -58,9 +58,31 @@ const AdminProduct = () => {
     productImg: []
   });
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/product/get-all-products`
+        );
+        dispatch(setProducts(Array.isArray(res.data.products) ? res.data.products : []));
+      } catch (error) {
+        if (error.response?.status === 404) {
+          dispatch(setProducts([]));
+          return;
+        }
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, [dispatch]);
+
   // ================= FILTER =================
   useEffect(() => {
-    if (!products || products.length === 0) return;
+    if (!products || products.length === 0) {
+      setFilteredList([]);
+      return;
+    }
 
     let filtered = [...products];
 
@@ -70,12 +92,6 @@ const AdminProduct = () => {
       );
     }
 
-    filtered = filtered.filter(
-      (p) =>
-        p.productPrice >= priceRange[0] &&
-        p.productPrice <= priceRange[1]
-    );
-
     if (displayOrder === "lowToHigh") {
       filtered.sort((a, b) => a.productPrice - b.productPrice);
     } else if (displayOrder === "highToLow") {
@@ -83,7 +99,7 @@ const AdminProduct = () => {
     }
 
     setFilteredList(filtered);
-  }, [search, displayOrder, priceRange, products]);
+  }, [search, displayOrder, products]);
 
   const handleSortChange = (e) => {
     setFilter(e.target.value);
@@ -123,6 +139,16 @@ const AdminProduct = () => {
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
+    const productPrice = Number(formData.productPrice);
+    if (!Number.isFinite(productPrice) || productPrice < 1 || productPrice > MAX_PRODUCT_PRICE) {
+      setToast({
+        open: true,
+        message: "Price must be between 1 and 10000 PKR",
+        severity: "error"
+      });
+      return;
+    }
+
     if (!formData.productImg?.length) {
       setToast({
         open: true,
@@ -272,7 +298,7 @@ const AdminProduct = () => {
         {filteredList.map((product) => (
           <div
             key={product._id}
-            className="bg-white/30 rounded-xl p-4 md:py-6 border border-white/50flex flex-col gap-3 hover:scale-[1.02] transition"
+            className="bg-white/30 rounded-xl p-4 md:py-6 border border-white/50 flex flex-col gap-3 hover:scale-[1.02] transition"
           >
 
             <img
@@ -316,8 +342,9 @@ const AdminProduct = () => {
           <TextField label="Product Name" name="productName"
             value={formData.productName} onChange={handleChange} fullWidth />
 
-          <TextField label="Price" name="productPrice"
-            value={formData.productPrice} onChange={handleChange} fullWidth />
+          <TextField label="Price" name="productPrice" type="number"
+            value={formData.productPrice} onChange={handleChange} fullWidth
+            inputProps={{ min: 1, max: MAX_PRODUCT_PRICE }} />
 
           <TextField label="Brand" name="brand"
             value={formData.brand} onChange={handleChange} fullWidth />

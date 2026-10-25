@@ -1,0 +1,150 @@
+﻿diff --git a/controller/productController.js b/controller/productController.js
+index 22e868c..3dcc190 100644
+--- a/controller/productController.js
++++ b/controller/productController.js
+@@ -1,6 +1,7 @@
+ const getDataUri = require("../utils/dataUri");
+ const cloudinary = require("../utils/cloudinary");
+ const Product = require('../models/productModel.js');
++const Cart = require("../models/cartModel");
+ 
+ const MAX_PRODUCT_PRICE = 10000;
+ 
+@@ -100,6 +101,11 @@ const deleteProduct = async (req, res) => {
+         }
+         //From Mongo db
+         await Product.findByIdAndDelete(productId);
++        try {
++            await Cart.updateMany({}, { $pull: { items: { productId } } });
++        } catch (error) {
++            console.error("Failed to remove deleted product from carts:", error);
++        }
+ 
+         return res.status(200).json({
+             success: true,
+diff --git a/controller/userController.js b/controller/userController.js
+index 00c6dd6..643e621 100644
+--- a/controller/userController.js
++++ b/controller/userController.js
+@@ -173,7 +173,7 @@ const login = async (req, res) => {
+         if (!existingUser) {
+             return res.status(400).json({
+                 success: false,
+-                message: "User Not Exists"
++                message: "Invalid email or password"
+             });
+         }
+ 
+@@ -182,7 +182,7 @@ const login = async (req, res) => {
+         if (!isPasswordValid) {
+             return res.status(400).json({
+                 success: false,
+-                message: "Username or password incorrect"
++                message: "Invalid email or password"
+             });
+         }
+ 
+diff --git a/utils/cartSync.js b/utils/cartSync.js
+deleted file mode 100644
+index 1eabbce..0000000
+--- a/utils/cartSync.js
++++ /dev/null
+@@ -1,81 +0,0 @@
+-import axios from "axios";
+-import { setCart } from "../redux/productSlice";
+-import { setUser } from "../redux/userSlice";
+-import { getGuestCart } from "./guestCart";
+-
+-// Keeps the cart in step with the login session:
+-// - no token (guest / after logout): show the guest cart from localStorage
+-// - token: merge any guest cart into the account cart (server side, prices from
+-//   the database), then show the account cart
+-// - expired / invalid token (401): clear the dead session and go to /login
+-//
+-// Called by App whenever the logged-in user changes (login, logout, page load).
+-
+-let inFlight = null; // prevents a double merge (React StrictMode runs effects twice in dev)
+-
+-const run = async (dispatch) => {
+-  const API = import.meta.env.VITE_API_URL;
+-  const token = localStorage.getItem("accessToken");
+-
+-  if (!token) {
+-    dispatch(setCart(getGuestCart()));
+-    return;
+-  }
+-
+-  const headers = { Authorization: `Bearer ${token}` };
+-
+-  try {
+-    const guest = getGuestCart();
+-    const lines = (guest.items || [])
+-      .map((item) => ({
+-        productId: item.productId?._id || item.productId,
+-        quantity: Number(item.quantity)
+-      }))
+-      .filter((line) => typeof line.productId === "string" && line.quantity >= 1);
+-
+-    let res = null;
+-
+-    if (lines.length > 0) {
+-      try {
+-        res = await axios.post(`${API}/cart/merge`, { items: lines }, { headers });
+-        if (res.data.success) {
+-          localStorage.removeItem("guestCart");
+-        }
+-      } catch (mergeError) {
+-        if (mergeError.response?.status === 401) throw mergeError;
+-        // merge failed for another reason: keep the guest cart, show the saved cart
+-        res = null;
+-      }
+-    }
+-
+-    if (!res) {
+-      res = await axios.get(`${API}/cart`, { headers });
+-      if (res.data.success && lines.length === 0) {
+-        localStorage.removeItem("guestCart");
+-      }
+-    }
+-
+-    if (res.data.success) {
+-      dispatch(setCart(res.data.cart));
+-    }
+-  } catch (error) {
+-    if (error.response?.status === 401) {
+-      localStorage.removeItem("accessToken");
+-      localStorage.removeItem("user");
+-      localStorage.removeItem("persist:Ekart"); // real redux-persist key (was "persist:root")
+-      dispatch(setUser(null));
+-      window.location.href = "/login";
+-      return;
+-    }
+-    console.log(error);
+-  }
+-};
+-
+-export const syncCart = (dispatch) => {
+-  if (!inFlight) {
+-    inFlight = run(dispatch).finally(() => {
+-      inFlight = null;
+-    });
+-  }
+-  return inFlight;
+-};
+\ No newline at end of file
+diff --git a/utils/errorMessage.js b/utils/errorMessage.js
+deleted file mode 100644
+index c82bcc6..0000000
+--- a/utils/errorMessage.js
++++ /dev/null
+@@ -1,9 +0,0 @@
+-// Picks the most useful message from a failed request or a thrown Error.
+-// - server answered: use its "message" (or the fallback)
+-// - no server answer (guest-cart rule, network problem): use the error's own text
+-export const getErrorMessage = (error, fallback) => {
+-  if (error?.response) {
+-    return error.response.data?.message || fallback;
+-  }
+-  return error?.message || fallback;
+-};
+\ No newline at end of file

@@ -34,7 +34,13 @@ const AdminOrders = () => {
         return ["Completed"];
 
       default:
-        return ["Pending", "Confirmed", "Out for Delivery", "Completed"];
+        return [...new Set([
+          currentStatus,
+          "Pending",
+          "Confirmed",
+          "Out for Delivery",
+          "Completed"
+        ])];
     }
   };
 
@@ -114,7 +120,7 @@ const handleWhatsApp = (order) => {
 
   const productsList = order.products
     ?.map((p) => {
-      const name = p.productId?.productName || "Product";
+      const name = p.productId?.productName || "Deleted product";
       const qty = p.quantity || 1;
       return `• ${name} x ${qty}`;
     })
@@ -272,23 +278,20 @@ const handleWhatsApp = (order) => {
 
                   {order.products?.map((p, i) => {
 
-                    const name = p.productId?.productName || "Product";
-                    const qty = p.quantity ;
+                    const name = p.productId?.productName || "Deleted product";
+                    const qty = p.quantity;
 
                     return (
-                      <div key={i} className="flex justify-between text-xs md:text-sm">
-
+                      <div key={i} className="text-xs md:text-sm">
                         <span>{name} × {qty}</span>
-
-                        <p className="text-[var(--color-text)]">
-                        {order.currency} {order.amount?.toFixed?.(2)}
-                      </p>
-
                       </div>
                     );
                   })}
 
                 </div>
+                <p className="mt-2 text-[var(--color-text)]">
+                  Total: {order.currency} {order.amount?.toFixed?.(2)}
+                </p>
               </div>
 
             </div>
@@ -326,6 +329,10 @@ const handleWhatsApp = (order) => {
       {renderOrders(filtered.filter(o => o.status === "Confirmed"), "Confirmed")}
       {renderOrders(filtered.filter(o => o.status === "Out for Delivery"), "Out for Delivery")}
       {renderOrders(filtered.filter(o => o.status === "Completed"), "Completed")}
+      {filtered.some(o => o.status === "Paid") &&
+        renderOrders(filtered.filter(o => o.status === "Paid"), "Paid")}
+      {filtered.some(o => o.status === "Failed") &&
+        renderOrders(filtered.filter(o => o.status === "Failed"), "Failed")}
 
       {/* TOAST */}
       <Snackbar

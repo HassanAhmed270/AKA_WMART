@@ -4,6 +4,7 @@ import { LuLoaderCircle } from "react-icons/lu";
 import axios from "axios";
 import { useDispatch, useSelector } from 'react-redux';
 import ImageUpload from '../../components/ImageUpload';
+import { MAX_PRODUCT_PRICE } from '../../utils/productLimits';
 
 import {
   Card,
@@ -51,6 +52,16 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const productPrice = Number(formData.productPrice);
+    if (!Number.isFinite(productPrice) || productPrice < 1 || productPrice > MAX_PRODUCT_PRICE) {
+      setToast({
+        open: true,
+        message: "Price must be between 1 and 10000 PKR",
+        severity: "error"
+      });
+      return;
+    }
 
     if (!formData.productImg?.length) {
       setToast({
@@ -152,6 +163,7 @@ const AddProduct = () => {
               value={formData.productPrice}
               onChange={handleChange}
               required
+              inputProps={{ min: 1, max: MAX_PRODUCT_PRICE }}
               sx={{
                 input: { color: "black" },
                 label: { color: "black" }
