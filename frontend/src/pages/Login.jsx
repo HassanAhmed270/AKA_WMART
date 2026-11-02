@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { LuLoaderCircle } from "react-icons/lu";
@@ -27,7 +27,17 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [themeMode, setThemeMode] = useState("light"); // keep same logic if you already detect theme elsewhere
+  const themeMode = typeof window !== "undefined"
+    ? (() => {
+        const bg = getComputedStyle(document.documentElement)
+          .getPropertyValue("--color-background")
+          .trim();
+
+        return bg.includes("0") || document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light";
+      })()
+    : "light";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -90,19 +100,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-    // ✅ Detect theme from CSS variable (bg-background logic)
-    useEffect(() => {
-      const bg = getComputedStyle(document.documentElement)
-        .getPropertyValue("--color-background")
-        .trim();
-  
-      // simple heuristic (you can adjust if needed)
-      if (bg.includes("0") || document.documentElement.classList.contains("dark")) {
-        setThemeMode("dark");
-      } else {
-        setThemeMode("light");
-      }
-    }, []);
   return (
     <>
       <Box

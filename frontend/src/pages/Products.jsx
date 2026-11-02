@@ -47,21 +47,12 @@ const Products = () => {
         const fetchProducts = async () => {
 
             try {
-
-                console.log("🚀 Fetching products...");
-
                 const res = await axios.get(
                     `${import.meta.env.VITE_API_URL}/product/get-all-products`
                 );
 
-                console.log("📦 FULL RESPONSE:", res.data);
-
                 if (res.data.success) {
-
-                    console.log("✅ PRODUCTS:", res.data.products);
-
                     setAllProducts(res.data.products);
-
                     dispatch(setProducts(res.data.products));
 
                     setToastState({
@@ -71,10 +62,7 @@ const Products = () => {
                     });
                 }
 
-            } catch (error) {
-
-                console.error("❌ ERROR:", error);
-
+            } catch {
                 setToastState({
                     open: true,
                     message: "Failed to load products",
@@ -88,7 +76,7 @@ const Products = () => {
 
         fetchProducts();
 
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
 
@@ -102,11 +90,11 @@ const Products = () => {
             );
         }
 
-        if (category != "All") {
+        if (category !== "All") {
             filtered = filtered.filter(p => p.category === category);
         }
 
-        if (brand != "All") {
+        if (brand !== "All") {
             filtered = filtered.filter(p => p.brand === brand);
         }
 
@@ -121,11 +109,7 @@ const Products = () => {
             filtered.sort((a, b) => b.productPrice - a.productPrice);
         }
 
-        console.log("FILTERED:", filtered);
-
         dispatch(setProducts(filtered));
-
-        console.log("Dispatched:", products);
 
     }, [search, category, brand, displayOrder, priceRange, allProducts, dispatch]);
     useEffect(() => {

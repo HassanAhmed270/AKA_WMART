@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Snackbar, Alert, Dialog, DialogContent } from "@mui/material";
 
 const Payment = () => {
 
     const navigate = useNavigate();
 
-    const [method, setMethod] = useState(null);
     const [otp, setOtp] = useState("");
     const [timer, setTimer] = useState(60);
     const [status, setStatus] = useState("select");
@@ -25,14 +23,13 @@ const Payment = () => {
         type: ""
     });
 
-    const orderId = localStorage.getItem("paymentOrderId");
-    const token = localStorage.getItem("accessToken");
+    const { orderId } = useParams();
 
-    // ⏳ TIMER
+    // TIMER
     useEffect(() => {
         let interval;
 
-        if (status === "processing") {
+        if (status === "processing" && timer > 0) {
             interval = setInterval(() => {
                 setTimer((prev) => {
                     if (prev <= 1) {
@@ -45,137 +42,53 @@ const Payment = () => {
         }
 
         return () => clearInterval(interval);
-    }, [status]);
+    }, [status, timer]);
 
-    // 🟢 COD FLOW
-    const handleCOD = async () => {
-
-        setMethod("cod");
-        setStatus("pending");
-        setLoading(true);
-
-        setToast({
-            open: true,
-            message: "COD Order Placed (Pending Status)",
-            severity: "info"
-        });
-
-        try {
-            await axios.post(
-                `${import.meta.env.VITE_API_URL}/orders/verify`,
-                {
-                    paymentOrderId: orderId,
-                    paymentTransactionId: "COD_" + Date.now(),
-                    paymentSignature: "cod",
-                    paymentFailed: false,
-                    paymentMethod: "COD"
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-        } catch (err) {
-            console.log(err);
-        }
-
-        setLoading(false);
-
-        setTimeout(() => {
-            navigate("/products");
-        }, 2000);
-    };
-
-    // 🟢 START JAZZCASH
     const startJazzCash = () => {
-        setMethod("jazzcash");
         setStatus("processing");
         setTimer(60);
 
         setToast({
             open: true,
-            message: "JazzCash OTP Sent (Demo: 1234)",
+            message: "Demo OTP ready: 1234",
             severity: "info"
         });
     };
 
-    // 🟢 VERIFY OTP (PAID / FAILED)
-    const verifyOtp = async () => {
-
-        if (loading) return;
+    const verifyOtp = () => {
+        if (loading || timer === 0) return;
         setLoading(true);
 
-        try {
+        if (otp === "1234") {
+            setDialog({ open: true, type: "success" });
 
-            if (otp === "1234") {
+            setToast({
+                open: true,
+                message: "Demo payment completed",
+                severity: "success"
+            });
 
-                await axios.post(
-                    `${import.meta.env.VITE_API_URL}/orders/verify`,
-                    {
-                        paymentOrderId: orderId,
-                        paymentTransactionId: "TXN_" + Date.now(),
-                        paymentSignature: "demo_signature",
-                        paymentFailed: false
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-
-
-                setDialog({ open: true, type: "success" });
-
-                setToast({
-                    open: true,
-                    message: "Payment Successful 🎉",
-                    severity: "success"
-                });
-
-                setTimeout(() => {
-                    navigate("/products");
-                }, 2000);
-
-            } else {
-
-                await axios.post(
-                    `${import.meta.env.VITE_API_URL}/orders/verify`,
-                    {
-                        paymentOrderId: orderId,
-                        paymentTransactionId: "FAILED_" + Date.now(),
-                        paymentSignature: "invalid",
-                        paymentFailed: true
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-
-                setDialog({ open: true, type: "fail" });
-
-                setToast({
-                    open: true,
-                    message: "Payment Failed ❌",
-                    severity: "error"
-                });
-            }
-
-        } catch (err) {
-            console.log(err);
+            setTimeout(() => {
+                navigate(`/order-success/${orderId}`);
+            }, 1500);
+        } else {
+            setToast({
+                open: true,
+                message: "Wrong OTP, try again",
+                severity: "error"
+            });
+            setLoading(false);
         }
-
-        setLoading(false);
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
 
             <div className="w-[420px] bg-white p-6 rounded-xl shadow-lg">
+
+                <div className="mb-4 rounded-md bg-amber-100 px-3 py-2 text-center text-sm text-amber-900">
+                    Demo payment: no real money is charged
+                </div>
 
                 <h1 className="text-2xl font-bold mb-4">Payment Method</h1>
 
@@ -192,14 +105,7 @@ const Payment = () => {
                             onClick={startJazzCash}
                             className="w-full bg-pink-600 text-white py-2 rounded-lg mb-3"
                         >
-                            Pay with JazzCash
-                        </button>
-
-                        <button
-                            onClick={handleCOD}
-                            className="w-full bg-black text-white py-2 rounded-lg"
-                        >
-                            Cash on Delivery
+                            Pay with JazzCash (Demo)
                         </button>
                     </>
                 )}
@@ -208,51 +114,61 @@ const Payment = () => {
                 {status === "processing" && (
                     <div className="space-y-3 text-center">
 
-                        <p>Enter OTP (Demo: 1234)</p>
+                        <p>Enter demo OTP: 1234</p>
 
-                        <p className="text-red-500">
-                            Timer: {timer}s
-                        </p>
+                        {timer === 0 ? (
+                            <>
+                                <p className="text-red-500">OTP expired</p>
+                                <button
+                                    onClick={() => {
+                                        setOtp("");
+                                        setTimer(60);
+                                    }}
+                                    className="w-full bg-pink-600 text-white py-2 rounded"
+                                >
+                                    Resend demo OTP
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-red-500">
+                                    Timer: {timer}s
+                                </p>
 
-                        <input
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            className="border p-2 w-full rounded"
-                            placeholder="Enter OTP"
-                        />
+                                <input
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    className="border p-2 w-full rounded"
+                                    placeholder="Enter OTP"
+                                />
 
-                        <button
-                            onClick={verifyOtp}
-                            disabled={loading}
-                            className="w-full bg-green-600 text-white py-2 rounded"
-                        >
-                            Verify OTP
-                        </button>
+                                <button
+                                    onClick={verifyOtp}
+                                    disabled={loading}
+                                    className="w-full bg-green-600 text-white py-2 rounded"
+                                >
+                                    Verify OTP
+                                </button>
+                            </>
+                        )}
                     </div>
                 )}
 
-                {/* COD STATUS */}
-                {status === "pending" && method === "cod" && (
-                    <h2 className="text-green-600 text-center font-bold">
-                        COD Order Pending
-                    </h2>
-                )}
-
+                <button
+                    onClick={() => navigate(`/order-success/${orderId}`)}
+                    className="mt-4 w-full text-sm text-blue-600 underline"
+                >
+                    Skip, go to my order
+                </button>
             </div>
 
             {/* DIALOG */}
             <Dialog open={dialog.open}>
                 <DialogContent className="p-6 text-center">
 
-                    {dialog.type === "success" ? (
-                        <h2 className="text-green-600 text-xl font-bold">
-                            Payment Successful 🎉
-                        </h2>
-                    ) : (
-                        <h2 className="text-red-600 text-xl font-bold">
-                            Payment Failed ❌
-                        </h2>
-                    )}
+                    <h2 className="text-green-600 text-xl font-bold">
+                        Demo payment completed
+                    </h2>
 
                 </DialogContent>
             </Dialog>

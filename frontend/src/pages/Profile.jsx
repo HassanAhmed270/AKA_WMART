@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Tabs from '../components/Tabs';
 import { useSelector, useDispatch } from 'react-redux';
@@ -25,37 +25,22 @@ const Profile = () => {
     severity: "success"
   });
 
-  const [updateUser, setUpdateUser] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNo: "",
-    address: "",
-    city: "",
-    zipCode: "",
-    profilePic: "",
-    role: ""
+  const buildUserForm = (nextUser) => ({
+    firstName: nextUser?.firstName || "",
+    lastName: nextUser?.lastName || "",
+    email: nextUser?.email || "",
+    phoneNo: nextUser?.phoneNo || "",
+    address: nextUser?.address || "",
+    city: nextUser?.city || "",
+    zipCode: nextUser?.zipCode || "",
+    profilePic: nextUser?.profilePic || "",
+    role: nextUser?.role || ""
   });
 
-  const accessToken = localStorage.getItem("accessToken");
+  const [updateUser, setUpdateUser] = useState(() => buildUserForm(user));
 
-  useEffect(() => {
-    if (user) {
-      setUpdateUser({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phoneNo: user.phoneNo || "",
-        address: user.address || "",
-        city: user.city || "",
-        zipCode: user.zipCode || "",
-        profilePic: user.profilePic || "",
-        role: user.role || ""
-      });
-    }
-  }, [user]);
-
-  const getUserOrders = async () => {
+  const getUserOrders = useCallback(async () => {
+    const accessToken = localStorage.getItem("accessToken");
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/orders/get-my-order`,
@@ -73,11 +58,15 @@ const Profile = () => {
     } catch (err) {
       console.log(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    getUserOrders();
-  }, []);
+    const timer = setTimeout(() => {
+      getUserOrders();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [getUserOrders]);
 
   const handleChange = (e) => {
     setUpdateUser({

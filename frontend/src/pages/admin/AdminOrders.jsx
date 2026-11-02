@@ -177,7 +177,7 @@ const handleWhatsApp = (order) => {
   const newTab = window.open(url, "_blank", "noopener,noreferrer");
 
   if (!newTab) {
-    window.location.href = url;
+    window.location.assign(url);
   }
 };
 

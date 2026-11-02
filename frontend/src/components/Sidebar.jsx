@@ -18,7 +18,7 @@ const Sidebar = () => {
     if (location.pathname === "/dashboard") {
       navigate("/dashboard/insights", { replace: true });
     }
-  }, []);
+  }, [location.pathname, navigate]);
 
   const linkClass = ({ isActive }) =>
     `text-lg flex items-center gap-2 cursor-pointer px-3 py-3 rounded-xl transition-colors

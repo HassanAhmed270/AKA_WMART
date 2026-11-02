@@ -55,7 +55,7 @@ const run = async (dispatch) => {
       localStorage.removeItem("user");
       localStorage.removeItem("persist:Ekart");
       dispatch(setUser(null));
-      window.location.href = "/login";
+      window.location.assign("/login");
       return;
     }
     console.log(error);

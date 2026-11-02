@@ -23,6 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SingleProduct from './pages/SingleProduct';
 import ForgotPassword from './pages/ForgotPassword';
 import OrderSuccess from './pages/OrderSuccess';
+import Payment from './pages/Payment';
 import NotFound from './pages/NotFound';
 import { setProducts } from "./redux/productSlice";
 import { syncCart } from "./utils/cartSync";
@@ -102,6 +103,10 @@ const router = createBrowserRouter([
         <OrderSuccess />
       </>
     )
+  },
+  {
+    path: '/payment-demo/:orderId',
+    element: <><Navbar /><Payment /></>
   },
   {
     path: '/dashboard',

@@ -27,6 +27,7 @@ const AddressForm = () => {
     });
 
     const [orderType, setOrderType] = useState("Delivery");
+    const [paymentMethod, setPaymentMethod] = useState("COD");
     const [phoneNumber, setPhoneNumber] = useState("");
 
     const [placingOrder, setPlacingOrder] = useState(false);
@@ -224,7 +225,7 @@ const AddressForm = () => {
 
             setTimeout(async () => {
                 await emptyCart();
-                navigate(`/order-success/${res.data.dbOrder._id}`);
+                navigate(paymentMethod === "DEMO" ? `/payment-demo/${res.data.dbOrder._id}` : `/order-success/${res.data.dbOrder._id}`);
             }, 1200);
 
         } catch (error) {
@@ -293,6 +294,34 @@ const AddressForm = () => {
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             className="w-full p-2 rounded-md border border-gray-900/10 bg-transparent"
                         />
+                    </div>
+
+                    <div className="p-5 rounded-xl bg-white/5 border border-gray-900/10 space-y-3">
+                        <div className='font-semibold'>Payment Method</div>
+
+                        <div className="flex flex-col gap-2">
+                            <label>
+                                <input
+                                    type="radio"
+                                    value="COD"
+                                    checked={paymentMethod === "COD"}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                />
+                                Cash on Delivery
+                            </label>
+
+                            <label>
+                                <input
+                                    type="radio"
+                                    value="DEMO"
+                                    checked={paymentMethod === "DEMO"}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                />
+                                JazzCash (Demo)
+                            </label>
+
+                            <p className="text-sm opacity-70">Demo only: no real payment is taken</p>
+                        </div>
                     </div>
 
                     {orderType === "Delivery" && (

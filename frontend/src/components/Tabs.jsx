@@ -44,7 +44,7 @@ const Tabs = ({
         const newTab = window.open(url, "_blank");
 
         if (!newTab) {
-          window.location.href = url;
+          window.location.assign(url);
         }
 
         alert("WhatsApp opened successfully.");

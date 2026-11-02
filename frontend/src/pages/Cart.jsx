@@ -107,7 +107,7 @@ const Cart = () => {
 
       }
 
-    } catch (error) {
+    } catch {
 
       setToastState({
         open: true,

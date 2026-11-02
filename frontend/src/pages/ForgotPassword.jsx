@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaArrowLeft } from "react-icons/fa";
@@ -15,8 +15,18 @@ import {
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [themeMode, setThemeMode] = useState("light");
   const [step, setStep] = useState("request");
+  const themeMode = typeof window !== "undefined"
+    ? (() => {
+        const bg = getComputedStyle(document.documentElement)
+          .getPropertyValue("--color-background")
+          .trim();
+
+        return bg.includes("0") || document.documentElement.classList.contains("dark")
+          ? "dark"
+          : "light";
+      })()
+    : "light";
   const [formData, setFormData] = useState({
     email: "",
     otp: "",
@@ -29,18 +39,6 @@ const ForgotPassword = () => {
     message: "",
     severity: "success"
   });
-
-  useEffect(() => {
-    const bg = getComputedStyle(document.documentElement)
-      .getPropertyValue("--color-background")
-      .trim();
-
-    if (bg.includes("0") || document.documentElement.classList.contains("dark")) {
-      setThemeMode("dark");
-    } else {
-      setThemeMode("light");
-    }
-  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -79,7 +77,7 @@ const ForgotPassword = () => {
     }
   };
 
-    const handleReset = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
 
     if (formData.newPassword.length < 8) {

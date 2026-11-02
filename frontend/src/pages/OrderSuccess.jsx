@@ -35,7 +35,7 @@ const OrderSuccess = () => {
                 message: "Inquiry sent to admin. They will respond via email.",
                 severity: "success"
             });
-        } catch (error) {
+        } catch {
             setToast({
                 open: true,
                 message: "Failed to send inquiry",

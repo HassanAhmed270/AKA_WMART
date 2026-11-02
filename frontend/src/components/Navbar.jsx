@@ -16,7 +16,7 @@ const Navbar = () => {
   const worker = user?.role === "worker" ? true : false
 
   const [loading, setLoading] = useState(false);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const dispatch = useDispatch();
@@ -24,10 +24,8 @@ const Navbar = () => {
   const { cart } = useCartContext();
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -66,7 +64,7 @@ const Navbar = () => {
         dispatch(setUser(null));
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
-        window.location.href = "/login";
+        window.location.assign("/login");
       }
     }
   };
