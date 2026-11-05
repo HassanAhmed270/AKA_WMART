@@ -8,12 +8,11 @@ const ShowUserOrders = () => {
 
   const [userOrder, setUserOrder] = useState(null);
 
-  const accessToken = localStorage.getItem("accessToken");
-
   useEffect(() => {
     let cancelled = false;
 
     const getUserOrders = async () => {
+      const accessToken = localStorage.getItem("accessToken");
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/orders/user-order/${userId}`,
@@ -37,7 +36,7 @@ const ShowUserOrders = () => {
     return () => {
       cancelled = true;
     };
-  }, [userId, accessToken]);
+  }, [userId]);
 
   return (
     <div className="

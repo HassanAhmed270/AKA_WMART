@@ -16,11 +16,10 @@ const Navbar = () => {
   const worker = user?.role === "worker" ? true : false
 
   const [loading, setLoading] = useState(false);
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState(() => typeof window === 'undefined' ? 'light' : (localStorage.getItem('theme') || 'light'));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const dispatch = useDispatch();
-  const accessToken = localStorage.getItem('accessToken');
   const { cart } = useCartContext();
 
   useEffect(() => {
@@ -37,6 +36,7 @@ const Navbar = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const accessToken = localStorage.getItem('accessToken');
 
     try {
       const res = await axios.post(

@@ -21,11 +21,9 @@ const AdminSales = () => {
     salesByDate: []
   });
 
-  const accessToken = localStorage.getItem("accessToken");
-
   const fetchStates = async () => {
+    const accessToken = localStorage.getItem("accessToken");
     try {
-
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/orders/sales`,
         {

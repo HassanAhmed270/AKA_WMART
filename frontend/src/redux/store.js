@@ -12,6 +12,49 @@ import {
   REGISTER,
 } from "redux-persist";
 
+// 🔹 Root Reducer
+const rootReducer = combineReducers({
+  user: userSlice,
+  products: productSlice,
+});
+
+// 🔹 Store factory
+// The browser creates a persisted store; the server passes a memory storage and
+// persist: false so no localStorage is touched and no persistStore is called.
+export const createAppStore = ({ storage, persist = true, preloadedState } = {}) => {
+  // 🔹 Persist Config
+  const persistConfig = {
+    key: "Ekart",
+    version: 1,
+    storage,
+    whitelist: ["user"], // only user persists
+  };
+
+  const reducer = persist ? persistReducer(persistConfig, rootReducer) : rootReducer;
+
+  const store = configureStore({
+    reducer,
+    preloadedState,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: [
+            FLUSH,
+            REHYDRATE,
+            PAUSE,
+            PERSIST,
+            PURGE,
+            REGISTER,
+          ],
+        },
+      }),
+  });
+
+  const persistor = persist ? persistStore(store) : null;
+
+  return { store, persistor };
+};
+
 // 🔹 Safe fallback for localStorage
 const safeStorage = {
   getItem: (key) => Promise.resolve(localStorage.getItem(key)),
@@ -25,43 +68,13 @@ const safeStorage = {
   },
 };
 
-// 🔹 Persist Config
-const persistConfig = {
-  key: "Ekart",
-  version: 1,
-  storage: safeStorage,
-  whitelist: ["user"], // only user persists
-};
-
-// 🔹 Root Reducer (✅ FIXED HERE)
-const rootReducer = combineReducers({
-  user: userSlice,
-  products: productSlice,   // ✅ ADDED (this was missing)
-});
-
-// 🔹 Persisted Reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-// 🔹 Store
-const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [
-          FLUSH,
-          REHYDRATE,
-          PAUSE,
-          PERSIST,
-          PURGE,
-          REGISTER,
-        ],
-      },
-    }),
-});
+// Browser-only module-scope store so the server entry never touches localStorage.
+const browser = typeof window !== "undefined"
+  ? createAppStore({ storage: safeStorage, persist: true })
+  : null;
 
 // 🔹 Persistor
-export const persistor = persistStore(store);
+export const persistor = browser?.persistor;
 
 // 🔹 Export Store
-export default store;
+export default browser?.store;

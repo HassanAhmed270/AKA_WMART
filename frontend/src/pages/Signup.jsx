@@ -37,17 +37,7 @@ const Signup = () => {
   const [showReverify, setShowReverify] = useState(false);
   const [reverifyEmail, setReverifyEmail] = useState("");
 
-  const themeMode = typeof window !== "undefined"
-    ? (() => {
-        const bg = getComputedStyle(document.documentElement)
-          .getPropertyValue("--color-background")
-          .trim();
-
-        return bg.includes("0") || document.documentElement.classList.contains("dark")
-          ? "dark"
-          : "light";
-      })()
-    : "light";
+  const themeMode = typeof window !== "undefined" ? (() => { const bg = getComputedStyle(document.documentElement).getPropertyValue("--color-background").trim(); return bg.includes("0") || document.documentElement.classList.contains("dark") ? "dark" : "light"; })() : "light";
 
   const handleChange = (e) => {
     setFormData({

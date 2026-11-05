@@ -27,17 +27,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const themeMode = typeof window !== "undefined"
-    ? (() => {
-        const bg = getComputedStyle(document.documentElement)
-          .getPropertyValue("--color-background")
-          .trim();
-
-        return bg.includes("0") || document.documentElement.classList.contains("dark")
-          ? "dark"
-          : "light";
-      })()
-    : "light";
+  const themeMode = typeof window !== "undefined" ? (() => { const bg = getComputedStyle(document.documentElement).getPropertyValue("--color-background").trim(); return bg.includes("0") || document.documentElement.classList.contains("dark") ? "dark" : "light"; })() : "light";
 
   const [formData, setFormData] = useState({
     email: "",

@@ -16,7 +16,6 @@ import { getErrorMessage } from '../utils/errorMessage';
 
 const Cart = () => {
 
-  const accessToken = localStorage.getItem("accessToken");
   const { cart } = useCartContext();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -30,6 +29,7 @@ const Cart = () => {
   const API = `${import.meta.env.VITE_API_URL}/cart`;
 
   const updateQuantity = async (productId, type) => {
+    const accessToken = localStorage.getItem("accessToken");
     try {
       if (!accessToken) {
         const newCart = updateGuestCartQuantity(productId, type);
@@ -76,6 +76,7 @@ const Cart = () => {
 
   const handleRemove = async (productId) => {
 
+    const accessToken = localStorage.getItem("accessToken");
     try {
       if (!accessToken) {
         const newCart = removeFromGuestCart(productId);
